@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Account</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+    body{display:flex;justify-content:center;align-items:center;min-height:100vh;
+         background:linear-gradient(135deg,#4a90e2,#9013fe);padding:20px}
+    .container{background:#fff;border-radius:20px;padding:40px 30px;
+               box-shadow:0 20px 50px rgba(0,0,0,.2);max-width:420px;width:100%;
+               text-align:center}
+    h2{margin-bottom:15px;color:#333}
+    p{margin-bottom:20px;color:#666;font-size:14px}
+    .otp-box{display:flex;justify-content:space-between;margin-bottom:20px}
+    .otp-box input{width:55px;height:55px;text-align:center;font-size:18px;
+                   border:2px solid #ddd;border-radius:10px;outline:none;transition:.3s}
+    .otp-box input:focus{border-color:#4a90e2}
+    .btn{width:100%;padding:12px;border:none;outline:none;
+         background:linear-gradient(135deg,#4a90e2,#9013fe);color:#fff;
+         border-radius:8px;font-size:16px;cursor:pointer;transition:.3s ease}
+    .btn:hover{background:linear-gradient(135deg,#9013fe,#4a90e2)}
+    .resend{margin-top:15px;font-size:13px;color:#666}
+    .resend a{color:#4a90e2;text-decoration:none;font-weight:500;pointer-events:none;opacity:0.5}
+    .resend a.enabled{pointer-events:auto;opacity:1}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Verify Your Account</h2>
+    <p>Enter the 4-digit verification code sent to your email address to continue.</p>
+
+    <div class="otp-box">
+      <input type="text" maxlength="1" oninput="moveNext(this, 'otp2')" id="otp1">
+      <input type="text" maxlength="1" oninput="moveNext(this, 'otp3')" id="otp2">
+      <input type="text" maxlength="1" oninput="moveNext(this, 'otp4')" id="otp3">
+      <input type="text" maxlength="1" id="otp4">
+    </div>
+
+    <!-- Redirect to select language -->
+    <button class="btn" type="button" onclick="window.location.href='https://soclinqglobaltech.com/select-language/'">
+      Verify
+    </button>
+
+    <div class="resend">
+      Didn’t receive the code? <a href="#" id="resendLink">Resend Code</a>
+      <div id="timerText">Resend available in <span id="countdown">30</span>s</div>
+    </div>
+  </div>
+
+  <script>
+    // Auto jump OTP inputs
+    function moveNext(current, nextId){
+      if(current.value.length===1){
+        const next=document.getElementById(nextId);
+        if(next) next.focus();
+      }
+    }
+
+    // Countdown timer for resend link
+    let countdown = 30;
+    const countdownEl = document.getElementById("countdown");
+    const resendLink = document.getElementById("resendLink");
+    const timerText = document.getElementById("timerText");
+
+    const timer = setInterval(() => {
+      countdown--;
+      countdownEl.textContent = countdown;
+
+      if(countdown <= 0){
+        clearInterval(timer);
+        resendLink.classList.add("enabled");
+        timerText.textContent = "You can now resend the code.";
+      }
+    }, 1000);
+
+    // Handle resend click
+    resendLink.addEventListener("click", function(e){
+      if(!resendLink.classList.contains("enabled")){
+        e.preventDefault(); // disabled before countdown ends
+      } else {
+        alert("A new verification code has been sent to your email.");
+        // restart countdown
+        countdown = 30;
+        countdownEl.textContent = countdown;
+        resendLink.classList.remove("enabled");
+        timerText.innerHTML = `Resend available in <span id="countdown">${countdown}</span>s`;
+        startNewTimer();
+      }
+    });
+
+    function startNewTimer(){
+      const newCountdownEl = document.getElementById("countdown");
+      const newTimer = setInterval(() => {
+        countdown--;
+        newCountdownEl.textContent = countdown;
+        if(countdown <= 0){
+          clearInterval(newTimer);
+          resendLink.classList.add("enabled");
+          timerText.textContent = "You can now resend the code.";
+        }
+      }, 1000);
+    }
+  </script>
+
+</body>
+</html>

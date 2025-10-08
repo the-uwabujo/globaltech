@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Linqmie - Login / Register</title>
+
+  <!-- Font Awesome (brands + solid) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    :root{
+      --primary:#0073e6;
+      --bg:#f5f6fa;
+      --card:#fff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg);
+      display:flex; align-items:center; justify-content:center; min-height:100vh;
+    }
+
+    .auth-container{
+      width:400px; max-width:94vw; background:var(--card); border-radius:12px; overflow:hidden;
+      box-shadow:0 8px 26px rgba(10,20,40,.08);
+    }
+    .auth-header{ padding:20px; text-align:center; color:#fff;
+      background:linear-gradient(90deg,#004aad,#0073e6);
+    }
+    .auth-header h2{ margin:0; font-size:20px; font-weight:700; }
+    .auth-header p{ margin:6px 0 0; font-size:13px; opacity:.95 }
+
+    .tab-buttons{ display:flex; border-bottom:1px solid #eee }
+    .tab-buttons button{
+      flex:1; padding:12px; border:0; background:#fafafa; cursor:pointer;
+      font-weight:700; font-size:15px; color:#000;
+    }
+    .tab-buttons button.active{
+      background:#fff; color:var(--primary); border-bottom:3px solid var(--primary);
+    }
+
+    .tab-content{ padding:20px; display:none; }
+    .tab-content.active{ display:block }
+
+    .input-group{ position:relative; margin-bottom:14px }
+    .input-group input{
+      width:100%; padding:12px 40px 12px 40px; border:1px solid #d9e2ee; border-radius:8px;
+      font-size:14px; background:#fff;
+    }
+    .input-group i.left-icon{
+      position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#596b86; font-size:14px;
+    }
+    .input-group i.toggle-password{
+      position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#596b86;
+    }
+
+    .phone-group {
+      display: flex;
+      gap: 6px;
+    }
+    .phone-group select {
+      border: 1px solid #d9e2ee;
+      border-radius: 8px;
+      font-size: 14px;
+      padding: 12px;
+      background: #fff;
+      width: 45%;
+    }
+    .phone-group input {
+      flex: 1;
+    }
+
+    .forgot-password{ text-align:right; margin-top:-6px; margin-bottom:12px }
+    .forgot-password a{ color:var(--primary); text-decoration:none; font-size:13px }
+    .forgot-password a:hover{ text-decoration:underline }
+
+    .submit-btn{
+      width:100%; padding:12px; border-radius:8px; border:0; background:var(--primary);
+      color:#fff; font-weight:700; font-size:15px; cursor:pointer;
+    }
+
+    .divider{ text-align:center; margin:18px 0; color:#8b96a8; position:relative; font-size:13px }
+    .divider:before, .divider:after{ content:""; position:absolute; top:50%; width:36%; height:1px; background:#e6eaf0 }
+    .divider:before{ left:0 } .divider:after{ right:0 }
+    .divider span{ background:var(--card); padding:0 10px }
+
+    .social-login{ display:flex; justify-content:center; gap:12px }
+    .social-login button{
+      width:40px; height:40px; border-radius:50%; border:1px solid #e6eaf0; background:#fff;
+      display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:#333;
+    }
+
+    @media (max-width:420px){
+      .auth-container{ width:92vw }
+      .input-group input{ padding-left:44px; padding-right:44px }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-container" aria-live="polite">
+    <div class="auth-header">
+      <h2>Welcome to Linqmi</h2>
+      <p>Access your account or create a new one</p>
+    </div>
+
+    <div class="tab-buttons" role="tablist">
+      <button id="tabLogin" class="active" role="tab" aria-controls="loginForm">Login</button>
+      <button id="tabRegister" role="tab" aria-controls="registerForm">Register</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm" class="tab-content active" novalidate>
+      <div class="input-group">
+        <i class="fa-solid fa-envelope left-icon" aria-hidden="true"></i>
+        <input id="loginEmail" name="email" type="email" placeholder="Email address" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fa-solid fa-lock left-icon" aria-hidden="true"></i>
+        <input id="loginPassword" name="password" type="password" placeholder="Password" required>
+        <i class="fa-solid fa-eye toggle-password" role="button" tabindex="0" aria-label="Show password" data-target="loginPassword"></i>
+      </div>
+
+      <div class="forgot-password">
+        <a id="forgotLink" href="https://soclinqglobaltech.com/reset-password/">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="submit-btn" id="loginSubmit">Login</button>
+
+      <div class="divider"><span>Or continue with</span></div>
+
+      <div class="social-login" aria-hidden="false">
+        <button type="button" title="Continue with Google"><i class="fab fa-google"></i></button>
+        <button type="button" title="Continue with Facebook"><i class="fab fa-facebook-f"></i></button>
+        <button type="button" title="Continue with X"><i class="fab fa-x-twitter"></i></button>
+      </div>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="registerForm" class="tab-content" novalidate>
+      <div class="input-group">
+        <i class="fa-solid fa-user left-icon" aria-hidden="true"></i>
+        <input id="regName" name="name" type="text" placeholder="Full name" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fa-solid fa-envelope left-icon" aria-hidden="true"></i>
+        <input id="regEmail" name="email" type="email" placeholder="Email address" required>
+      </div>
+
+      <!-- Country code + phone input -->
+      <div class="input-group phone-group">
+        <select id="countryCode" name="countryCode" required>
+          <option value="+93">🇦🇫 Afghanistan (+93)</option>
+          <option value="+355">🇦🇱 Albania (+355)</option>
+          <option value="+213">🇩🇿 Algeria (+213)</option>
+          <option value="+1-684">🇦🇸 American Samoa (+1-684)</option>
+          <option value="+376">🇦🇩 Andorra (+376)</option>
+          <option value="+244">🇦🇴 Angola (+244)</option>
+          <option value="+1-264">🇦🇮 Anguilla (+1-264)</option>
+          <option value="+672">🇦🇶 Antarctica (+672)</option>
+          <option value="+54">🇦🇷 Argentina (+54)</option>
+          <option value="+374">🇦🇲 Armenia (+374)</option>
+          <option value="+297">🇦🇼 Aruba (+297)</option>
+          <option value="+61">🇦🇺 Australia (+61)</option>
+          <option value="+43">🇦🇹 Austria (+43)</option>
+          <option value="+994">🇦🇿 Azerbaijan (+994)</option>
+          <option value="+973">🇧🇭 Bahrain (+973)</option>
+          <option value="+880">🇧🇩 Bangladesh (+880)</option>
+          <option value="+32">🇧🇪 Belgium (+32)</option>
+          <option value="+229">🇧🇯 Benin (+229)</option>
+          <option value="+975">🇧🇹 Bhutan (+975)</option>
+          <option value="+591">🇧🇴 Bolivia (+591)</option>
+          <option value="+387">🇧🇦 Bosnia & Herzegovina (+387)</option>
+          <option value="+267">🇧🇼 Botswana (+267)</option>
+          <option value="+55">🇧🇷 Brazil (+55)</option>
+          <option value="+359">🇧🇬 Bulgaria (+359)</option>
+          <option value="+226">🇧🇫 Burkina Faso (+226)</option>
+          <option value="+95">🇲🇲 Myanmar (+95)</option>
+          <option value="+855">🇰🇭 Cambodia (+855)</option>
+          <option value="+237">🇨🇲 Cameroon (+237)</option>
+          <option value="+1">🇨🇦 Canada (+1)</option>
+          <option value="+86">🇨🇳 China (+86)</option>
+          <option value="+57">🇨🇴 Colombia (+57)</option>
+          <option value="+243">🇨🇩 Congo (DRC) (+243)</option>
+          <option value="+506">🇨🇷 Costa Rica (+506)</option>
+          <option value="+385">🇭🇷 Croatia (+385)</option>
+          <option value="+357">🇨🇾 Cyprus (+357)</option>
+          <option value="+420">🇨🇿 Czech Republic (+420)</option>
+          <option value="+45">🇩🇰 Denmark (+45)</option>
+          <option value="+20">🇪🇬 Egypt (+20)</option>
+          <option value="+251">🇪🇹 Ethiopia (+251)</option>
+          <option value="+358">🇫🇮 Finland (+358)</option>
+          <option value="+33">🇫🇷 France (+33)</option>
+          <option value="+49">🇩🇪 Germany (+49)</option>
+          <option value="+233">🇬🇭 Ghana (+233)</option>
+          <option value="+30">🇬🇷 Greece (+30)</option>
+          <option value="+852">🇭🇰 Hong Kong (+852)</option>
+          <option value="+36">🇭🇺 Hungary (+36)</option>
+          <option value="+354">🇮🇸 Iceland (+354)</option>
+          <option value="+91">🇮🇳 India (+91)</option>
+          <option value="+62">🇮🇩 Indonesia (+62)</option>
+          <option value="+98">🇮🇷 Iran (+98)</option>
+          <option value="+964">🇮🇶 Iraq (+964)</option>
+          <option value="+353">🇮🇪 Ireland (+353)</option>
+          <option value="+972">🇮🇱 Israel (+972)</option>
+          <option value="+39">🇮🇹 Italy (+39)</option>
+          <option value="+81">🇯🇵 Japan (+81)</option>
+          <option value="+962">🇯🇴 Jordan (+962)</option>
+          <option value="+7">🇷🇺 Kazakhstan (+7)</option>
+          <option value="+254">🇰🇪 Kenya (+254)</option>
+          <option value="+965">🇰🇼 Kuwait (+965)</option>
+          <option value="+961">🇱🇧 Lebanon (+961)</option>
+          <option value="+218">🇱🇾 Libya (+218)</option>
+          <option value="+352">🇱🇺 Luxembourg (+352)</option>
+          <option value="+60">🇲🇾 Malaysia (+60)</option>
+          <option value="+356">🇲🇹 Malta (+356)</option>
+          <option value="+212">🇲🇦 Morocco (+212)</option>
+          <option value="+977">🇳🇵 Nepal (+977)</option>
+          <option value="+31">🇳🇱 Netherlands (+31)</option>
+          <option value="+64">🇳🇿 New Zealand (+64)</option>
+          <option value="+234">🇳🇬 Nigeria (+234)</option>
+          <option value="+47">🇳🇴 Norway (+47)</option>
+          <option value="+92">🇵🇰 Pakistan (+92)</option>
+          <option value="+970">🇵🇸 Palestine (+970)</option>
+          <option value="+51">🇵🇪 Peru (+51)</option>
+          <option value="+63">🇵🇭 Philippines (+63)</option>
+          <option value="+48">🇵🇱 Poland (+48)</option>
+          <option value="+351">🇵🇹 Portugal (+351)</option>
+          <option value="+974">🇶🇦 Qatar (+974)</option>
+          <option value="+40">🇷🇴 Romania (+40)</option>
+          <option value="+7">🇷🇺 Russia (+7)</option>
+          <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+          <option value="+65">🇸🇬 Singapore (+65)</option>
+          <option value="+27">🇿🇦 South Africa (+27)</option>
+          <option value="+34">🇪🇸 Spain (+34)</option>
+          <option value="+94">🇱🇰 Sri Lanka (+94)</option>
+          <option value="+46">🇸🇪 Sweden (+46)</option>
+          <option value="+41">🇨🇭 Switzerland (+41)</option>
+          <option value="+886">🇹🇼 Taiwan (+886)</option>
+          <option value="+255">🇹🇿 Tanzania (+255)</option>
+          <option value="+66">🇹🇭 Thailand (+66)</option>
+          <option value="+216">🇹🇳 Tunisia (+216)</option>
+          <option value="+90">🇹🇷 Turkey (+90)</option>
+          <option value="+256">🇺🇬 Uganda (+256)</option>
+          <option value="+380">🇺🇦 Ukraine (+380)</option>
+          <option value="+971">🇦🇪 UAE (+971)</option>
+          <option value="+44">🇬🇧 United Kingdom (+44)</option>
+          <option value="+1">🇺🇸 United States (+1)</option>
+          <option value="+598">🇺🇾 Uruguay (+598)</option>
+          <option value="+998">🇺🇿 Uzbekistan (+998)</option>
+          <option value="+58">🇻🇪 Venezuela (+58)</option>
+          <option value="+84">🇻🇳 Vietnam (+84)</option>
+          <option value="+260">🇿🇲 Zambia (+260)</option>
+          <option value="+263">🇿🇼 Zimbabwe (+263)</option>
+          <!-- full list continues... -->
+        </select>
+        <input id="regPhone" name="phone" type="tel" placeholder="Phone number" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fa-solid fa-lock left-icon" aria-hidden="true"></i>
+        <input id="registerPassword" name="password" type="password" placeholder="Password" required>
+        <i class="fa-solid fa-eye toggle-password" role="button" tabindex="0" aria-label="Show password" data-target="registerPassword"></i>
+      </div>
+
+      <button type="submit" class="submit-btn" id="registerSubmit">Create account</button>
+
+      <div class="divider"><span>Or continue with</span></div>
+
+      <div class="social-login">
+        <button type="button" title="Continue with Google"><i class="fab fa-google"></i></button>
+        <button type="button" title="Continue with Facebook"><i class="fab fa-facebook-f"></i></button>
+        <button type="button" title="Continue with X"><i class="fab fa-x-twitter"></i></button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Tabs
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    function activateTab(which){
+      if(which === 'login'){
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+        loginForm.querySelector('input, button').focus();
+      } else {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        registerForm.classList.add('active');
+        loginForm.classList.remove('active');
+        registerForm.querySelector('input, button').focus();
+      }
+    }
+
+    tabLogin.addEventListener('click', ()=>activateTab('login'));
+    tabRegister.addEventListener('click', ()=>activateTab('register'));
+
+    // Password toggle
+    document.querySelectorAll('.toggle-password').forEach(icon=>{
+      icon.addEventListener('click', ()=>{
+        const targetId = icon.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if(!input) return;
+        if(input.type === 'password'){
+          input.type = 'text';
+          icon.classList.replace('fa-eye','fa-eye-slash');
+          icon.setAttribute('aria-label','Hide password');
+        } else {
+          input.type = 'password';
+          icon.classList.replace('fa-eye-slash','fa-eye');
+          icon.setAttribute('aria-label','Show password');
+        }
+      });
+    });
+
+    // Redirect behavior
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      window.location.href = "https://soclinqglobaltech.com/dashboard/";
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      window.location.href = "https://soclinqglobaltech.com/verify/";
+    });
+
+    // Accessibility
+    [tabLogin, tabRegister].forEach(btn=>{
+      btn.addEventListener('keydown', (ev)=>{
+        if(ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); btn.click(); }
+      });
+    });
+  </script>
+</body>
+</html>
