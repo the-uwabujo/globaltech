@@ -8,5 +8,7 @@ urlpatterns = [
     path('contact-us/',views.contact_us, name = 'contact-us'),
     path('select-lang/',views.select_lang, name = 'select-lang'),
     path('verify/',views.verify, name = 'verify'),
-    path('login/',views.login, name = 'login'),
+    #path('login/',views.login, name = 'login'),
+    path('register/',views.register, name = 'register'),
+
 ]

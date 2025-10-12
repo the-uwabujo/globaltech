@@ -66,10 +66,19 @@ WSGI_APPLICATION = 'soclinqsec.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'soclinqglobaltech',
+        'USER': 'root',
+        'PASSWORD': 'System@123',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+          'sql_mode':'STRICT_TRANS_TABLES'
+        }
     }
 }
+
+#NAME, USER, PASSWORD, HOST, PORT
 
 
 # Password validation
