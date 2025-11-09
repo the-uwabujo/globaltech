@@ -21,11 +21,21 @@ def select_lang(request):
 def verify(request):
   return render (request, 'verify.html')
 
+def user_dashboard(request):
+    return render(request, 'user-dashboard.html')
+
+
+def admin_dashboard(request):
+    return render(request, 'Admin/admin-dashboard.html')
+
+
 
 
 def register(request):
+    print(request.POST)
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
+        print(form.errors)
         if form.is_valid():
             user = form.save()
             # login(request, user)
@@ -38,12 +48,24 @@ def register(request):
         return render(request, 'register.html', {'form': form})
 
 
-# def register(request):
-#   print(request.POST['name'])
-
-#   get_mode = Account.objects.create({
-#     name:request.POST['name'],
-#     passwod:request.POST['password']
-#   })
-#   return request.POST
-# Create your views here.
+def login_view(request):
+    """
+    Login with email and password.
+    Expects POST with 'email' and 'password'. Renders 'login.html' on GET or on failure.
+    Redirects to 'home' on success.
+    """
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        print(request.POST)
+        # Try standard authenticate (username=email) and then a fallback using 'email' kwarg
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            login(request, user)
+            if request.user.is_superuser:
+                return redirect('admin-dashboard')
+            else:
+              return redirect('user-dashboard')
+        # Authentication failed
+        return render(request, 'login.html', {'error': 'Invalid email or password', 'email': email})
+    return render(request, 'login.html')

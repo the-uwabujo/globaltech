@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>LINQMI — Responsive Dashboard (Part 1: HTML + CSS)</title>
+
+<!-- Fonts + icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+
+<!-- Leaflet (CSS only; JS will load in Part 2) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+:root{
+  --bg:#f6f8fb; --brand:#064b8f; --sidebar:#0e4a86; --accent:#0e8f6b;
+  --text:#0f172a; --muted:#64748b; --card:#ffffff; --danger:#e63946;
+  --amber:#ffc107; --blue:#1f8bff; --violet:#6d28d9;
+  --radius:14px; --shadow:0 12px 30px rgba(2,18,53,.08);
+}
+
+/* ✅ Sidebar Sticky + Scrollable (Desktop & Mobile) */
+.sidebar {
+  position: sticky;              /* keeps menu in place while scrolling */
+  top: 64px;                     /* aligns below topbar */
+  height: calc(100vh - 64px);    /* full height minus topbar */
+  overflow-y: auto;              /* enable vertical scroll */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
+  overscroll-behavior: contain;  /* prevent page scroll chaining */
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+/* ✅ Sticky + Scrollable Drawer Menu (Mobile) */
+.sidebar.drawer {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 260px;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  box-shadow: 0 30px 80px rgba(2,18,53,.25);
+  transition: transform .28s cubic-bezier(.2,.9,.2,1);
+}
+
+/* ✅ Bottom Navigation Scroll (Mobile) */
+.bottom-nav {
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+.bottom-nav .item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+}
+.bottom-nav::-webkit-scrollbar {
+  height: 6px;
+}
+.bottom-nav::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+.bottom-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.4);
+}
+
+/* ✅ Sidebar Scroll Fix for Desktop & Mobile */
+.sidebar {
+  overflow-y: auto;              /* enables vertical scroll */
+  scrollbar-width: thin;         /* modern browsers */
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+
+/* Custom scrollbar styling for Chrome/Edge */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+/* Mobile drawer overlay scroll (if menu too long) */
+.sidebar.drawer {
+  max-height: calc(100vh - 64px); /* ensure fits screen */
+  overflow-y: auto;
+}
+
+/* Reset / base */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+
+/* Topbar */
+.topbar{height:64px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;position:sticky;top:0;z-index:1200}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+.logo{height:36px;width:36px;border-radius:10px;background:#0d61bc;display:grid;place-items:center}
+.topnav{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.topnav a{color:#e6f2ff;text-decoration:none;font-weight:700}
+.actions{display:flex;gap:10px;align-items:center}
+.btn{border:0;background:#fff;color:var(--brand);padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18)}
+.btn.warn{background:var(--danger);color:#fff}
+.btn.alt{background:var(--accent);color:#fff}
+.badge{margin-left:auto;background:var(--blue);color:#fff;padding:4px 8px;border-radius:999px}
+.avatar{height:34px;width:34px;border-radius:50%;background:#e2e8f0;display:grid;place-items:center;font-weight:800;color:#0b2b53}
+
+/* Live stream strip in header */
+.livestream-strip{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#0b376e,#0c6f64);padding:6px 10px}
+.ls-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 6px rgba(239,68,68,.18)}
+.ls-title{font-weight:800;letter-spacing:.2px}
+.ls-ticker{color:#dbeafe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50vw}
+.ls-open{margin-left:auto}
+
+/* Layout */
+.container{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 64px)}
+
+/* Sidebar */
+.sidebar{background:var(--sidebar);padding:18px;color:#dff6ff;height:calc(100vh - 64px);position:sticky;top:64px;transition:transform .28s cubic-bezier(.2,.9,.2,1);z-index:1100}
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu .label{opacity:.8;font-size:12px;margin:8px 6px 2px}
+.menu .item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;color:#e7fbff}
+.menu .item.active{background:#0b3972}
+.menu .item:hover{background:rgba(255,255,255,.06)}
+
+/* Drawer (mobile) */
+.sidebar.drawer{position:fixed;left:0;top:64px;height:calc(100vh - 64px);width:260px;transform:translateX(-110%);box-shadow:0 30px 80px rgba(2,18,53,.25)}
+.sidebar.drawer.open{transform:translateX(0)}
+.overlay{position:fixed;inset:0;background:rgba(2,12,36,.45);opacity:0;visibility:hidden;transition:opacity .2s;z-index:1050}
+.overlay.show{opacity:1;visibility:visible}
+
+/* Main */
+.main{padding:22px}
+.page-title{font-size:24px;font-weight:800;margin-bottom:8px}
+.subtle{color:var(--muted);margin-bottom:12px}
+.sos-banner{background:var(--danger);color:#fff;padding:14px;border-radius:12px;font-weight:800;text-align:center;box-shadow:var(--shadow);margin:12px 0}
+
+/* Grid / cards */
+.grid{display:grid;gap:18px}
+.cols-3{grid-template-columns:repeat(3,1fr)}
+.cols-2{grid-template-columns:2fr 1.2fr}
+.card{background:linear-gradient(180deg,#ffffff 0,#f1f8ff 100%);border-radius:12px;padding:18px;box-shadow:var(--shadow)}
+.panel{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.panel-title{font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+/* Forms */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input,textarea,select{padding:10px;border-radius:8px;border:1px solid #d6e2ee;font-size:15px;width:100%;background:#fff}
+textarea{min-height:100px}
+fieldset{border:1px dashed #dbe5f1;border-radius:12px;padding:12px}
+legend{padding:0 6px;color:#0b3b5b;font-weight:800}
+.kv{font-weight:700;color:#0b3b5b}
+.helper{font-size:12px;color:var(--muted)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Tables (simple) */
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px;border-bottom:1px solid #f2f6fa;text-align:left;font-size:14px}
+
+/* Map placeholders */
+#map,#map_panel,#map_geo{height:280px;border-radius:10px;background:#eef5ff}
+
+/* Bottom nav (mobile) */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;height:64px;background:#fff;border-top:1px solid #eef2f6;display:none;align-items:center;justify-content:space-around;z-index:1250}
+.bottom-nav .item{display:flex;flex-direction:column;align-items:center;font-size:12px;color:#334155;text-decoration:none;padding:6px;gap:4px}
+.bottom-nav .item i{font-size:18px}
+
+/* Modals (skeletons; JS in Part 2) */
+.modal{position:fixed;inset:0;display:none;background:rgba(2,12,36,.56);align-items:center;justify-content:center;z-index:1400;padding:18px}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:12px;width:100%;max-width:760px;max-height:90vh;overflow:auto;box-shadow:0 30px 80px rgba(2,18,53,.35)}
+.modal-header{background:var(--brand);color:#fff;padding:12px 16px;border-radius:12px 12px 0 0;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:16px}
+.modal-footer{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px}
+
+/* Accessibility helpers */
+.hc-on .topbar,.hc-on .sidebar{filter:contrast(1.2) saturate(1.1)}
+.text-lg{font-size:18px}
+.text-xl{font-size:20px}
+
+/* Responsive */
+@media (max-width:1100px){
+  .container{grid-template-columns:84px 1fr}
+  .label-hide{display:none}
+}
+@media (max-width:880px){
+  .container{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .sidebar.drawer{display:block}
+  .form-grid{grid-template-columns:1fr}
+  .cols-3,.cols-2{grid-template-columns:1fr}
+  .topnav{display:none}
+  .bottom-nav{display:flex}
+}
+@media (max-width:480px){
+  .page-title{font-size:20px}
+  .btn{padding:8px 10px}
+  .sos-banner{font-size:16px;padding:12px}
+}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <button id="hamburger" class="btn ghost" title="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+    <div>
+      <div style="font-weight:800">LINQMI</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.85)">Safety Platform</div>
+    </div>
+  </div>
+
+  <nav class="topnav" role="navigation" aria-label="main nav">
+    <a href="#" data-panel="home" class="link-nav" id="link_home">Home</a>
+    <a href="#" data-panel="community_panel" class="link-nav" id="link_community">Community</a>
+    <a href="#" data-panel="sos_panel" class="link-nav" id="link_sos">SOS</a>
+    <a href="#" data-panel="mentorship_panel" class="link-nav">Mentorship</a>
+    <a href="#" data-panel="profile_panel" class="link-nav">Profile</a>
+  </nav>
+
+  <div class="actions">
+    <button id="btn_logout" class="btn ghost"><i class="fa-solid fa-right-to-bracket"></i> <span class="label-hide">Logout</span></button>
+    <button id="btn_sos" class="btn"><i class="fa-solid fa-bell"></i> <span class="label-hide">SOS</span></button>
+  </div>
+</header>
+
+<!-- LIVE STREAM STRIP (header) -->
+<div class="livestream-strip" id="live_strip">
+  <span class="ls-dot" aria-hidden="true"></span>
+  <span class="ls-title">Live •</span>
+  <span class="ls-ticker" id="ls_ticker">Breaking: Community safety updates stream is ready…</span>
+  <button id="ls_open" class="btn alt ls-open"><i class="fa-solid fa-tower-broadcast"></i> Open Stream</button>
+</div>
+
+<!-- OVERLAY for drawer -->
+<div id="overlay" class="overlay" aria-hidden="true"></div>
+
+<!-- LAYOUT -->
+<div class="container">
+  <!-- Desktop sidebar -->
+  <aside id="sidebar_desktop" class="sidebar" aria-label="Main menu">
+    <h4 style="color:#fff;font-weight:800;margin:0 0 10px">Menu</h4>
+    <div class="menu" id="menu_desktop">
+      <div class="item active" data-panel="home"><i class="fa-solid fa-house"></i> <span class="label-hide">Home</span></div>
+
+      <div class="label">Core</div>
+      <div class="item" data-panel="report"><i class="fa-solid fa-shield-halved"></i> <span class="label-hide">Report</span></div>
+      <div class="item" data-panel="sos_panel"><i class="fa-solid fa-siren-on"></i> <span class="label-hide">SOS</span><span class="badge" id="badge_sos">0</span></div>
+      <div class="item" data-panel="community_panel"><i class="fa-solid fa-users"></i> <span class="label-hide">Community</span><span class="badge" id="badge_groups">0</span></div>
+      <div class="item" data-panel="tracking_panel"><i class="fa-solid fa-mobile-screen-button"></i> <span class="label-hide">Device Tracking</span></div>
+      <div class="item" data-panel="geo_panel"><i class="fa-solid fa-map-location-dot"></i> <span class="label-hide">Geospatial</span></div>
+
+      <div class="label">Support</div>
+      <div class="item" data-panel="mentorship_panel"><i class="fa-solid fa-hand-holding-heart"></i> <span class="label-hide">Mentorship / Counselling</span></div>
+      <div class="item" data-panel="help_panel"><i class="fa-solid fa-circle-question"></i> <span class="label-hide">Help & Onboarding</span></div>
+
+      <div class="label">Account</div>
+      <div class="item" data-panel="profile_panel"><i class="fa-solid fa-user"></i> <span class="label-hide">Profile & Settings</span></div>
+      <div class="item" data-panel="privacy_panel"><i class="fa-solid fa-shield"></i> <span class="label-hide">Privacy & Consent</span></div>
+
+      <div style="margin-top:14px" class="small">
+        <div style="margin-bottom:8px"><strong>Data</strong></div>
+        <button id="btn_export_drawer" class="btn" style="width:100%;margin-bottom:8px"><i class="fa-solid fa-file-arrow-down"></i> Export</button>
+        <button id="btn_import_drawer" class="btn ghost" style="width:100%"><i class="fa-solid fa-file-import"></i> Import</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile drawer -->
+  <aside id="sidebar_drawer" class="sidebar drawer" aria-hidden="true">
+    <h4 style="margin:0 0 10px">Menu</h4>
+    <div class="menu" id="menu_drawer">
+      <div class="item active" data-panel="home"><i class="fa-solid fa-house"></i> <span>Home</span></div>
+      <div class="item" data-panel="report"><i class="fa-solid fa-shield-halved"></i> <span>Report</span></div>
+      <div class="item" data-panel="sos_panel"><i class="fa-solid fa-siren-on"></i> <span>SOS</span><span class="badge" id="badge_sos_drawer">0</span></div>
+      <div class="item" data-panel="community_panel"><i class="fa-solid fa-users"></i> <span>Community</span><span class="badge" id="badge_groups_drawer">0</span></div>
+      <div class="item" data-panel="tracking_panel"><i class="fa-solid fa-mobile-screen-button"></i> <span>Device Tracking</span></div>
+      <div class="item" data-panel="geo_panel"><i class="fa-solid fa-map-location-dot"></i> <span>Geospatial</span></div>
+      <div class="item" data-panel="mentorship_panel"><i class="fa-solid fa-hand-holding-heart"></i> <span>Mentorship</span></div>
+      <div class="item" data-panel="help_panel"><i class="fa-solid fa-circle-question"></i> <span>Help</span></div>
+      <div class="item" data-panel="profile_panel"><i class="fa-solid fa-user"></i> <span>Profile</span></div>
+      <div class="item" data-panel="privacy_panel"><i class="fa-solid fa-shield"></i> <span>Privacy</span></div>
+    </div>
+
+    <div style="margin-top:18px" class="small">
+      <div style="margin-bottom:8px"><strong>Data</strong></div>
+      <button id="btn_export_drawer_m" class="btn" style="width:100%;margin-bottom:8px"><i class="fa-solid fa-file-arrow-down"></i> Export</button>
+      <button id="btn_import_drawer_m" class="btn ghost" style="width:100%"><i class="fa-solid fa-file-import"></i> Import</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+
+    <!-- HOME -->
+    <section id="home" class="panel-view">
+      <div class="page-title">Home</div>
+      <div class="subtle">Welcome — use SOS for emergencies, report issues, or connect with your community.</div>
+
+      <div class="sos-banner"><a class="item" href="#" data-panel="sos_panel"><i class="fa-solid fa-siren-on"></i><span>EMERGENCY SOS — ONE TAP TO ALERT</span></a></div>
+
+      <!-- Live Streams (embedded at top of Home) -->
+      <div class="grid cols-2" style="margin-bottom:18px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-tower-broadcast"></i> Live Stream</div>
+          <div id="live_player" style="aspect-ratio:16/9;background:#000;border-radius:10px;display:grid;place-items:center;color:#fff">
+            <!-- In Part 2, JS will mount <video> or <iframe> here -->
+            <div><i class="fa-solid fa-circle-play"></i> Stream player placeholder</div>
+          </div>
+          <div class="helper" style="margin-top:8px">Live crisis updates, verified news, safety briefings.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-bullhorn"></i> Live Updates</div>
+          <ul id="live_updates" style="margin:0;padding-left:16px;max-height:230px;overflow:auto">
+            <li>Stream will show official alerts and community verifications.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid cols-3">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="helper">Reports received</div>
+              <div class="stat" id="stat_reports" style="font-weight:800;font-size:28px">0</div>
+            </div>
+            <div><button class="btn small" data-panel="report"><i class="fa-solid fa-plus"></i> Report</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div>
+            <div class="helper">Active SOS</div>
+            <div class="stat" id="stat_sos" style="font-weight:800;font-size:28px">0</div>
+          </div>
+        </div>
+        <div class="card">
+          <div>
+            <div class="helper">Devices registered</div>
+            <div class="stat" id="stat_devices" style="font-weight:800;font-size:28px">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:18px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-file-pen"></i> Quick Report</div>
+          <form id="form_report">
+            <div class="form-grid">
+              <div>
+                <label>Type</label>
+                <select id="report_type">
+                  <option>Crime</option><option>Fire</option><option>Medical</option>
+                  <option>Missing Person</option><option>Election Report</option>
+                </select>
+              </div>
+              <div>
+                <label>Urgency</label>
+                <select id="report_urgency"><option>Low</option><option>Medium</option><option>High</option></select>
+              </div>
+
+              <!-- Election-only quick fields -->
+              <div id="election_fields_quick" class="hidden" style="grid-column:1 / -1"></div>
+
+              <div style="grid-column:1 / -1">
+                <label>Description</label>
+                <textarea id="report_desc" placeholder="What happened?"></textarea>
+              </div>
+              <div>
+                <label>Anonymous</label>
+                <select id="report_anon"><option value="yes">Yes</option><option value="no">No</option></select>
+              </div>
+              <div>
+                <label>Attach</label>
+                <input id="report_files" type="file" multiple />
+              </div>
+            </div>
+            <div class="btn-row" style="margin-top:8px">
+              <button type="submit" class="btn">Submit Report</button>
+              <button type="button" class="btn ghost" data-panel="report_history">My Reports</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-map"></i> Real-time SOS Map</div>
+          <div id="map"></div>
+          <div class="btn-row" style="margin-top:10px">
+            <button class="btn" id="btn_getloc"><i class="fa-solid fa-location-crosshairs"></i> Get Location</button>
+            <button class="btn ghost" id="btn_send_sos"><i class="fa-solid fa-siren-on"></i> Send SOS</button>
+          </div>
+          <div class="helper" id="map_status" style="margin-top:8px">Location not acquired yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Report History -->
+    <section id="report_history" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="page-title">My Reports</div>
+          <div class="helper">All reports you submitted (local demo)</div>
+        </div>
+        <div><button class="btn ghost" data-panel="home">Back</button></div>
+      </div>
+      <div style="margin-top:12px" id="reports_list"></div>
+    </section>
+
+    <!-- Report Panel (detailed) -->
+    <section id="report" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="page-title">Report</div>
+          <div class="helper">Submit detailed report</div>
+        </div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+      <div style="margin-top:12px">
+        <form id="report_panel_form">
+          <div class="form-grid">
+            <div>
+              <label>Type</label>
+              <select id="rp_type"><option>Crime</option><option>Fire</option><option>Medical</option><option>Missing Person</option><option>Election Report</option></select>
+            </div>
+            <div>
+              <label>Urgency</label>
+              <select id="rp_urgency"><option>Low</option><option>Medium</option><option>High</option></select>
+            </div>
+
+            <!-- Election-only fields (panel) -->
+            <div id="election_fields_panel" class="hidden" style="grid-column:1 / -1"></div>
+
+            <div style="grid-column:1 / -1">
+              <label>Description</label>
+              <textarea id="rp_desc"></textarea>
+            </div>
+            <div>
+              <label>Anonymous?</label>
+              <select id="rp_anon"><option value="yes">Yes</option><option value="no">No</option></select>
+            </div>
+            <div>
+              <label>Attach media</label>
+              <input id="rp_files" type="file" multiple />
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn" type="submit">Submit</button>
+            <button class="btn ghost" type="button" data-panel="home">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+<!-- ✅ Election Reporting (Nigeria) — Feature Extension -->
+<script>
+// ===============================
+// Election Reporting Extension
+// ===============================
+const electionQuick = document.getElementById('election_fields_quick');
+const electionPanel = document.getElementById('election_fields_panel');
+const reportTypeQuick = document.getElementById('report_type');
+const reportTypePanel = document.getElementById('rp_type');
+
+// Election HTML structure (same for both quick + panel forms)
+const electionFieldsHTML = `
+  <fieldset style="margin-top:8px;">
+    <legend>Election Details (Nigeria)</legend>
+    <div class="form-grid">
+      <div>
+        <label>Election Type</label>
+        <select id="election_type">
+          <option>Presidential</option>
+          <option>Governorship</option>
+          <option>Senatorial</option>
+          <option>House of Representatives</option>
+          <option>State House of Assembly</option>
+          <option>Local Government</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Political Party</label>
+        <select id="election_party">
+          <option>APC</option><option>PDP</option><option>LP</option>
+          <option>NNPP</option><option>APGA</option><option>SDP</option>
+          <option>ADC</option><option>YPP</option><option>ACCORD</option>
+          <option>AAC</option><option>PRP</option><option>NRM</option>
+        </select>
+      </div>
+
+      <div>
+        <label>State</label>
+        <input id="election_state" placeholder="e.g. Lagos" />
+      </div>
+      <div>
+        <label>LGA</label>
+        <input id="election_lga" placeholder="e.g. Ikeja" />
+      </div>
+
+      <div>
+        <label>Ward</label>
+        <input id="election_ward" placeholder="e.g. Ward 3" />
+      </div>
+      <div>
+        <label>Polling Unit</label>
+        <input id="election_pu" placeholder="e.g. PU 024" />
+      </div>
+
+      <div style="grid-column:1 / -1">
+        <label>Incident Type</label>
+        <select id="election_incident">
+          <option>Vote buying</option>
+          <option>Ballot snatching</option>
+          <option>Intimidation / Violence</option>
+          <option>INEC logistics issue</option>
+          <option>Result manipulation</option>
+          <option>Security misconduct</option>
+          <option>Others (describe below)</option>
+        </select>
+      </div>
+
+      <div style="grid-column:1 / -1">
+        <label>Witness Names (optional)</label>
+        <input id="election_witness" placeholder="List names if any" />
+      </div>
+    </div>
+  </fieldset>
+`;
+
+// Render election fields into both placeholders
+if (electionQuick) electionQuick.innerHTML = electionFieldsHTML;
+if (electionPanel) electionPanel.innerHTML = electionFieldsHTML;
+
+// Utility to toggle visibility
+function toggleElectionFields(selectEl, fieldsEl) {
+  const val = selectEl.value;
+  if (val === "Election Report") {
+    fieldsEl.classList.remove('hidden');
+  } else {
+    fieldsEl.classList.add('hidden');
+  }
+}
+
+// Watch both dropdowns
+reportTypeQuick?.addEventListener('change', () => toggleElectionFields(reportTypeQuick, electionQuick));
+reportTypePanel?.addEventListener('change', () => toggleElectionFields(reportTypePanel, electionPanel));
+
+// Default check (if user revisits page)
+toggleElectionFields(reportTypeQuick, electionQuick);
+toggleElectionFields(reportTypePanel, electionPanel);
+
+</script>
+
+
+    <!-- SOS -->
+    <section id="sos_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">SOS Center</div><div class="helper">One-tap SOS and recent alerts</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><strong>Send SOS</strong><div class="helper">Share your location with nearby responders</div></div>
+            <div class="helper">Demo only</div>
+          </div>
+          <div style="margin-top:12px" class="btn-row">
+            <button class="btn" id="sos_send_btn"><i class="fa-solid fa-siren-on"></i> Send SOS Now</button>
+            <button class="btn ghost" id="sos_getloc_btn"><i class="fa-solid fa-location-crosshairs"></i> Get Location</button>
+          </div>
+          <div class="helper" style="margin-top:10px" id="sos_status">No location yet.</div>
+          <div style="margin-top:14px"><strong>Recent SOS Alerts</strong></div>
+          <div id="sos_list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">SOS Map (Admin View)</div>
+          <div id="map_panel"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Community Hub (Lite) -->
+    <section id="community_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Community Hub</div><div class="helper">Groups, P2P chat, verified leader announcements</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <fieldset>
+          <legend>Membership & Groups</legend>
+          <div class="helper" style="margin-bottom:8px">
+            You can join communities only with an account. Smaller hubs (estates, schools, churches) are tied to the main hierarchy (Town → LGA → State → National → Continental → Global). Each location has one official hub name (no duplicates).
+          </div>
+          <div class="form-grid">
+            <div>
+              <label>Group name</label>
+              <input id="group_name" placeholder="Neighbourhood / Estate / School" />
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <button class="btn" id="btn_create_group" type="button">Create</button>
+            </div>
+          </div>
+          <div id="groups_list" style="margin-top:12px"></div>
+        </fieldset>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-comments"></i> Chat</div>
+          <div id="chat_feed" style="max-height:280px;overflow:auto;background:#fbfeff;padding:10px;border-radius:8px"></div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <input id="chat_input" placeholder="Message" style="flex:1"/>
+            <button class="btn ghost" id="chat_send" type="button">Send</button>
+          </div>
+          <div class="helper" style="margin-top:8px">Leaders verified by SocLinq Admin can moderate hubs, approve members, validate alerts, block users, mute threads, and manage follow/unfollow.</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-bullhorn"></i> Announcements</div>
+          <div id="ann_feed" style="margin-top:8px"></div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <input id="ann_text" placeholder="Post a verified announcement" style="flex:1"/>
+            <button class="btn" id="ann_broadcast" type="button">Broadcast</button>
+          </div>
+          <div class="helper" style="margin-top:8px">Emergency broadcasts reach members via in-app alerts + SMS. Leaders can re-escalate reports; leaders can remove/suspend users.</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <div class="panel-title"><i class="fa-solid fa-people-arrows"></i> Nearby Support Feed</div>
+        <div class="helper">See who else is reporting/helping in your area (no cross-notification to other hubs).</div>
+        <ul id="nearby_support" style="margin:10px 0 0 18px"></ul>
+      </div>
+    </section>
+
+    <!-- Geospatial Features -->
+    <section id="geo_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Geospatial Intelligence</div><div class="helper">Incidents & alerts, safe vs risk zones, regional subscriptions</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-layer-group"></i> Interactive Map</div>
+          <div id="map_geo"></div>
+          <div class="form-grid" style="margin-top:10px">
+            <div>
+              <label>Zone filter</label>
+              <select id="geo_zone"><option value="all">All</option><option value="safe">Safe</option><option value="risk">Risk</option></select>
+            </div>
+            <div>
+              <label>Subscribe to region</label>
+              <select id="geo_region"><option>Home</option><option>School</option><option>Workplace</option></select>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn" id="btn_subscribe_zone" type="button">Subscribe</button>
+            <button class="btn ghost" id="btn_unsubscribe_zone" type="button">Unsubscribe</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-list-check"></i> Regional Alerts</div>
+          <ul id="geo_alerts" style="margin:0;padding-left:18px;max-height:320px;overflow:auto"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mentorship / Counselling – Request Form Support -->
+    <section id="mentorship_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Mentorship / Counselling</div><div class="helper">Request support (anonymous or verified)</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <form id="mentorship_form" style="margin-top:12px">
+        <fieldset style="margin-bottom:12px">
+          <legend>Identity Mode</legend>
+          <div class="form-grid">
+            <div>
+              <label>Mode</label>
+              <select id="ms_identity_mode">
+                <option value="verified">Verified (real name, contact)</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset id="ms_personal_info" style="margin-bottom:12px">
+          <legend>Personal Information (if verified)</legend>
+          <div class="form-grid">
+            <div><label>Full Name</label><input id="ms_fullname" /></div>
+            <div><label>Age Bracket / DOB</label><input id="ms_age" placeholder="18–24 / 1999-05-20" /></div>
+            <div><label>Gender</label>
+              <select id="ms_gender"><option>Female</option><option>Male</option><option>Prefer not to say</option></select>
+            </div>
+            <div><label>Email</label><input id="ms_email" type="email" /></div>
+            <div><label>Phone</label><input id="ms_phone" type="tel" /></div>
+          </div>
+        </fieldset>
+
+        <fieldset style="margin-bottom:12px">
+          <legend>Request Details</legend>
+          <div class="form-grid">
+            <div style="grid-column:1 / -1">
+              <label>Reason for Request</label>
+              <input id="ms_reason" placeholder="Short reason…" />
+            </div>
+
+            <div>
+              <label>Category of Support</label>
+              <select id="ms_category">
+                <option>Academic / Career mentorship</option>
+                <option>Crime prevention guidance</option>
+                <option>Psychological counselling</option>
+                <option>Family / Relationship issues</option>
+                <option>Substance abuse support</option>
+                <option>Trauma recovery</option>
+                <option>Other (describe below)</option>
+              </select>
+            </div>
+            <div>
+              <label>Urgency Level</label>
+              <select id="ms_urgency">
+                <option>Normal</option><option>Priority</option><option>Emergency</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Preferred Mode of Session</label>
+              <select id="ms_mode">
+                <option>In App chat</option><option>Audio call</option><option>Video call</option><option>WhatsApp</option><option>Mixed / No preference</option>
+              </select>
+            </div>
+            <div>
+              <label>Preferred Language</label>
+              <select id="ms_lang">
+                <option>English</option><option>Hausa</option><option>Yoruba</option><option>Igbo</option><option>Swahili</option><option>French</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Preferred Date</label>
+              <input id="ms_date" type="date" />
+            </div>
+            <div>
+              <label>Preferred Time</label>
+              <input id="ms_time" type="time" />
+            </div>
+
+            <div>
+              <label>Time Zone</label>
+              <input id="ms_timezone" value="Auto-detected" readonly />
+            </div>
+            <div>
+              <label>Gender-specific mentor?</label>
+              <select id="ms_gender_pref">
+                <option>No preference</option><option>Female counsellor</option><option>Male counsellor</option>
+              </select>
+            </div>
+
+            <div style="grid-column:1 / -1">
+              <label>Additional Details</label>
+              <textarea id="ms_more" placeholder="Share context or preferences…"></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset style="margin-bottom:12px">
+          <legend>Attachments / Additional Info</legend>
+          <div class="form-grid">
+            <div>
+              <label>Supporting documents</label>
+              <input id="ms_docs" type="file" multiple />
+              <div class="helper">Optional: school reports, legal letters, etc.</div>
+            </div>
+            <div>
+              <label>Media evidence (safety/crime)</label>
+              <input id="ms_media" type="file" accept="image/*,audio/*,video/*" multiple />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset style="margin-bottom:12px">
+          <legend>Consent & Privacy Controls</legend>
+          <div class="form-grid">
+            <div style="grid-column:1 / -1">
+              <label style="display:flex;gap:10px;align-items:center">
+                <input id="ms_consent_share" type="checkbox"> I consent to share my data with assigned mentors/counsellors only.
+              </label>
+            </div>
+            <div style="grid-column:1 / -1">
+              <label style="display:flex;gap:10px;align-items:center">
+                <input id="ms_consent_disclaimer" type="checkbox"> I understand this service does not replace medical or legal professionals where applicable.
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="btn-row">
+          <button class="btn alt" id="ms_submit" type="submit">Submit Request</button>
+          <button class="btn ghost" type="reset">Clear</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Profile & Settings -->
+    <section id="profile_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Profile & Settings</div><div class="helper">Manage personal details, privacy, sessions, language, notifications</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-id-card"></i> Personal Details</div>
+          <div class="form-grid">
+            <div><label>Full Name</label><input id="pf_name" /></div>
+            <div><label>Username</label><input id="pf_username" /></div>
+            <div><label>Email</label><input id="pf_email" type="email" /></div>
+            <div><label>Phone</label><input id="pf_phone" type="tel" /></div>
+            <div style="grid-column:1 / -1"><label>Passport / Profile Photo</label><input id="pf_passport" type="file" accept="image/*" /></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-lock"></i> Security</div>
+          <div class="form-grid">
+            <div><label>Change Password</label><input id="pf_pwd" type="password" placeholder="New password"/></div>
+            <div><label>Two-Factor Auth (2FA)</label><select id="pf_2fa"><option>Off</option><option>App (TOTP)</option><option>SMS</option></select></div>
+            <div><label>Manage Sessions</label><button class="btn ghost" id="pf_sessions" type="button">View Sessions</button></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-language"></i> Language & Notifications</div>
+          <div class="form-grid">
+            <div><label>Language</label>
+              <select id="pf_lang"><option>English</option><option>Hausa</option><option>Yoruba</option><option>Igbo</option><option>Swahili</option><option>French</option></select>
+            </div>
+            <div><label>Report Status Notifications</label>
+              <select id="pf_notify_status"><option>On</option><option>Off</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-user-shield"></i> Privacy Preferences</div>
+          <div class="form-grid">
+            <div><label>Anonymous reporting default</label><select id="pf_anon_default"><option>On</option><option>Off</option></select></div>
+            <div><label>Location sharing</label><select id="pf_location"><option>On</option><option>Off</option></select></div>
+            <div style="grid-column:1 / -1"><label>Export My History</label><div class="btn-row"><button class="btn" id="pf_export_csv" type="button">CSV</button><button class="btn" id="pf_export_pdf" type="button">PDF</button></div></div>
+            <div><label>Import emergency contacts</label><input id="pf_import_contacts" type="file" accept=".csv,.vcf" /></div>
+            <div><label>Exportable charts</label><button class="btn ghost" id="pf_export_charts" type="button">Export Charts</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy & Consent -->
+    <section id="privacy_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Privacy & Consent</div><div class="helper">Manage consent, opt-out, data visibility & retention</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-toggle-on"></i> Consent Management</div>
+          <div class="form-grid">
+            <div><label>Location</label><select id="pc_location"><option>Allowed</option><option>Denied</option></select></div>
+            <div><label>Device binding</label><select id="pc_device"><option>Allowed</option><option>Denied</option></select></div>
+            <div><label>Media upload</label><select id="pc_media"><option>Allowed</option><option>Denied</option></select></div>
+            <div style="grid-column:1 / -1" class="btn-row">
+              <button class="btn alt" id="pc_save" type="button">Save</button>
+              <button class="btn ghost" id="pc_reset" type="button">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-database"></i> My Data</div>
+          <div class="btn-row">
+            <button class="btn" id="pc_view_data" type="button">Display Stored Data</button>
+            <button class="btn ghost" id="pc_delete_data" type="button">Request Data Deletion</button>
+          </div>
+          <div class="helper" style="margin-top:8px">Data retention policy: visible here for transparency.</div>
+          <div id="pc_policy" class="helper" style="margin-top:6px">
+            Retention: Reports & SOS logs retained for safety audits (demo text).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Help & Onboarding -->
+    <section id="help_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Help & Onboarding</div><div class="helper">Tutorial, FAQ, Contact Support, Accessibility, Offline Mode</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-route"></i> First-time Tutorial</div>
+          <ol id="onboarding_steps" style="margin:0;padding-left:20px;line-height:1.8">
+            <li>Complete profile & language.</li>
+            <li>Test SOS (demo) and location access.</li>
+            <li>Join your community hub.</li>
+            <li>Learn report categories and evidence rules.</li>
+          </ol>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn" id="ob_start" type="button">Start Guided Walkthrough</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-circle-question"></i> FAQ & Contact</div>
+          <div id="faq_list">
+            <p><strong>How do I send an SOS?</strong> Use the SOS tab and allow location.</p>
+            <p><strong>Is my identity safe?</strong> You control anonymity & consent.</p>
+          </div>
+          <div style="margin-top:10px" class="btn-row">
+            <button class="btn ghost" id="help_contact" type="button"><i class="fa-solid fa-headset"></i> Contact Support</button>
+            <button class="btn" id="help_issue" type="button"><i class="fa-solid fa-bug"></i> Report Issue</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <div class="panel-title"><i class="fa-solid fa-universal-access"></i> Accessibility</div>
+        <div class="btn-row">
+          <button class="btn" id="acc_high_contrast" type="button">Toggle High Contrast</button>
+          <button class="btn ghost" id="acc_text_up" type="button">Increase Text</button>
+          <button class="btn ghost" id="acc_text_down" type="button">Decrease Text</button>
+          <button class="btn ghost" id="acc_screen_reader" type="button">Screen Reader Mode</button>
+        </div>
+        <div class="helper" style="margin-top:8px">Offline mode: store-and-forward for reports/SOS when the network is poor.</div>
+      </div>
+    </section>
+
+    <!-- Tracking -->
+    <section id="tracking_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Device Tracking</div><div class="helper">Register devices, report missing</div></div>
+        <div><button class="btn ghost" data-panel="home">Close</button></div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-mobile-screen"></i> Register Device</div>
+          <div style="margin-top:8px" class="form-grid">
+            <div><input id="dev_imei" placeholder="IMEI" /></div>
+            <div><input id="dev_sim" placeholder="SIM" /></div>
+            <div><input id="dev_model" placeholder="Model" /></div>
+          </div>
+          <div style="margin-top:8px">
+            <button class="btn" id="btn_register_device" type="button">Register</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="fa-solid fa-magnifying-glass-location"></i> Missing / Recovery Log</div>
+          <div style="margin-top:8px">
+            <button class="btn ghost" id="btn_report_missing" type="button">Report Missing</button>
+            <div id="recovery_log" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin (unchanged skeleton; JS in Part 2) -->
+    <section id="admin_panel" class="panel-view hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="page-title">Admin</div><div class="helper">View reports, SOS, devices and users (demo)</div></div>
+        <div><button class="btn ghost" data-panel="home">Exit Admin</button></div>
+      </div>
+
+      <div class="grid cols-3" style="margin-top:12px">
+        <div class="card"><div class="helper">Total Reports</div><div class="stat" id="admin_reports" style="font-weight:800;font-size:28px">0</div></div>
+        <div class="card"><div class="helper">Total SOS</div><div class="stat" id="admin_sos" style="font-weight:800;font-size:28px">0</div></div>
+        <div class="card"><div class="helper">Total Devices</div><div class="stat" id="admin_devices" style="font-weight:800;font-size:28px">0</div></div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><strong>Reports</strong></div>
+          <div><button class="btn ghost" id="admin_refresh" type="button">Refresh</button></div>
+        </div>
+        <table class="table" id="admin_reports_table" style="margin-top:12px">
+          <thead><tr><th>When</th><th>Type</th><th>Urgency</th><th>Description</th><th>Anon</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><strong>SOS Alerts</strong></div>
+          <div><button class="btn ghost" id="admin_ack_all" type="button">Acknowledge All</button></div>
+        </div>
+        <table class="table" id="admin_sos_table" style="margin-top:12px">
+          <thead><tr><th>When</th><th>Lat</th><th>Lng</th><th>Note</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><strong>Devices</strong></div>
+          <div><button class="btn ghost" id="admin_clear_devices" type="button">Clear Devices</button></div>
+        </div>
+        <div id="admin_devices_list" style="margin-top:12px"></div>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><strong>Users</strong></div>
+          <div><button class="btn ghost" id="admin_clear_users" type="button">Clear Users</button></div>
+        </div>
+        <div id="admin_users_list" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <div style="height:40px"></div>
+    <div class="helper" style="text-align:center;margin-top:6px">© <span id="year">2025</span> LINQMI — MVP Demo (UI-only)</div>
+  </main>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav" id="bottomNav" aria-hidden="true">
+  <a class="item" href="#" data-panel="home"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a class="item" href="#" data-panel="report"><i class="fa-solid fa-user"></i><span>Report</span></a>
+  <a class="item" href="#" data-panel="sos_panel"><i class="fa-solid fa-siren-on"></i><span><font color="red"><b>SOS</b></font></span></a>
+  <a class="item" href="#" data-panel="community_panel"><i class="fa-solid fa-users"></i><span>Community</span></a>
+  <a class="item" href="#" data-panel="profile_panel"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+</nav>
+
+<!-- Hidden inputs for import (wired in Part 2) -->
+<input type="file" id="file_input" accept="application/json" style="display:none"/>
+
+<!-- Modals (wired in Part 2) -->
+<div id="modal_auth" class="modal" role="dialog" aria-hidden="true">
+  <div class="modal-box">
+    <div class="modal-header">Registration & Onboarding <button class="btn ghost" data-close="modal_auth">Close</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div><label>Phone or Email</label><input id="auth_identifier" placeholder="+2348012345678 or me@mail.com"/></div>
+        <div><label>Language</label>
+          <select id="auth_lang"><option value="en">English</option><option value="yo">Yorùbá</option><option value="ha">Hausa</option><option value="ig">Igbo</option><option value="sw">Swahili</option><option value="fr">French</option></select>
+        </div>
+        <div><label>Anonymous reporting</label><select id="auth_anon"><option value="yes">Yes</option><option value="no">No</option></select></div>
+        <div><label>Device binding (demo)</label><textarea id="auth_device_info" readonly></textarea></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <button class="btn" id="send_otp_btn">Send OTP</button>
+        <input id="auth_otp" placeholder="Enter OTP" />
+        <button class="btn" id="verify_otp_btn">Verify & Create</button>
+      </div>
+      <div id="auth_msg" class="helper" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal_missing" class="modal" role="dialog" aria-hidden="true">
+  <div class="modal-box">
+    <div class="modal-header">Report Missing <button class="btn ghost" data-close="modal_missing">Close</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div><label>Category</label><select id="miss_category"><option>Device</option><option>Person</option></select></div>
+        <div><label>Identifier (IMEI / Name)</label><input id="miss_identifier" /></div>
+        <div style="grid-column:1 / -1"><label>Last seen</label><input id="miss_last" placeholder="Address or description"/></div>
+        <div style="grid-column:1 / -1"><label>Details</label><textarea id="miss_details"></textarea></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn ghost" data-close="modal_missing">Cancel</button>
+        <button class="btn" id="save_missing_btn">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE: All JavaScript will be delivered in Part 2 -->
+<script>
+/* ===============================
+   LINQMI — Part 2 (JavaScript)
+   Makes Part 1 fully functional.
+   =============================== */
+
+/* ---------- Constants & Storage ---------- */
+const LSK = localStorage;
+const nowISO = () => new Date().toISOString();
+const YEAR_EL = document.getElementById('year');
+if (YEAR_EL) YEAR_EL.textContent = String(new Date().getFullYear());
+
+const KEYS = {
+  reports: 'linqmiReports',
+  sos: 'linqmiSos',
+  devices: 'linqmiDevices',
+  groups: 'linqmiGroups',
+  chat: 'linqmiChat',
+  users: 'linqmiUsers',
+  missing: 'linqmiMissing',
+  mentorship: 'linqmiMentorshipRequests',
+  profile: 'linqmiProfile',
+  geoSubs: 'linqmiGeoSubscriptions'
+};
+
+function read(k, fallback) {
+  try { const v = LSK.getItem(k); return v ? JSON.parse(v) : (fallback ?? []); }
+  catch { return fallback ?? []; }
+}
+function write(k, val) {
+  try { LSK.setItem(k, JSON.stringify(val)); }
+  catch (e){ console.error('Storage error', e); alert('Storage is full or blocked.'); }
+}
+(function ensureKeys(){
+  if(!LSK.getItem(KEYS.reports)) write(KEYS.reports, []);
+  if(!LSK.getItem(KEYS.sos)) write(KEYS.sos, []);
+  if(!LSK.getItem(KEYS.devices)) write(KEYS.devices, []);
+  if(!LSK.getItem(KEYS.groups)) write(KEYS.groups, []);
+  if(!LSK.getItem(KEYS.chat)) write(KEYS.chat, []);
+  if(!LSK.getItem(KEYS.users)) write(KEYS.users, []);
+  if(!LSK.getItem(KEYS.missing)) write(KEYS.missing, []);
+  if(!LSK.getItem(KEYS.mentorship)) write(KEYS.mentorship, []);
+  if(!LSK.getItem(KEYS.profile)) write(KEYS.profile, {});
+  if(!LSK.getItem(KEYS.geoSubs)) write(KEYS.geoSubs, {regions:[],zone:'all'});
+})();
+
+function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg){ try{ console.log('[Toast]', msg); alert(msg); }catch{} }
+
+/* ---------- Drawer, Overlay, Navigation ---------- */
+const overlay = document.getElementById('overlay');
+const sidebarDrawer = document.getElementById('sidebar_drawer');
+const sidebarDesktop = document.getElementById('sidebar_desktop');
+const hamburger = document.getElementById('hamburger');
+const bottomNav = document.getElementById('bottomNav');
+
+function openDrawer(){
+  sidebarDrawer?.classList.add('open');
+  overlay?.classList.add('show');
+  sidebarDrawer?.setAttribute('aria-hidden','false');
+  overlay?.setAttribute('aria-hidden','false');
+}
+function closeDrawer(){
+  sidebarDrawer?.classList.remove('open');
+  overlay?.classList.remove('show');
+  sidebarDrawer?.setAttribute('aria-hidden','true');
+  overlay?.setAttribute('aria-hidden','true');
+}
+hamburger?.addEventListener('click', ()=> sidebarDrawer?.classList.contains('open') ? closeDrawer() : openDrawer());
+overlay?.addEventListener('click', closeDrawer);
+
+const panelViews = [...document.querySelectorAll('.panel-view')];
+function hideAll(){ panelViews.forEach(p=>p.classList.add('hidden')); }
+
+/* Keep active state in sidebars */
+function markActive(panelId){
+  document.querySelectorAll('.menu .item').forEach(n=>n.classList.remove('active'));
+  const d = [...document.querySelectorAll('#menu_desktop .item')].find(x=>x.dataset.panel===panelId);
+  const m = [...document.querySelectorAll('#menu_drawer .item')].find(x=>x.dataset.panel===panelId);
+  d?.classList.add('active'); m?.classList.add('active');
+}
+
+function openPanel(panelId){
+  hideAll();
+  const el = document.getElementById(panelId);
+  if(el) el.classList.remove('hidden');
+  markActive(panelId);
+  // Per-panel refresh hooks
+  if(panelId==='home'){ renderCounts(); }
+  if(panelId==='report_history'){ renderReportsList(); }
+  if(panelId==='sos_panel'){ renderSosList(); setTimeout(()=>{ try{ panelMap?.invalidateSize(); }catch{} }, 200); }
+  if(panelId==='community_panel'){ renderGroups(); renderChat(); renderAnnouncements(); renderNearbySupport(); }
+  if(panelId==='tracking_panel'){ renderRecoveryLog(); }
+  if(panelId==='admin_panel'){ renderAdmin(); }
+  if(panelId==='geo_panel'){ setTimeout(()=>{ try{ geoMap?.invalidateSize(); }catch{} }, 150); }
+  closeDrawer();
+}
+window.openPanel = openPanel;
+
+document.querySelectorAll('.link-nav').forEach(a=>{
+  a.addEventListener('click', (e)=>{ e.preventDefault(); openPanel(a.dataset.panel); });
+});
+document.querySelectorAll('.bottom-nav .item,[data-panel]').forEach(node=>{
+  node.addEventListener('click', (e)=>{ 
+    if(node.tagName==='A') e.preventDefault(); 
+    const p = node.dataset.panel; if(p) openPanel(p);
+  });
+});
+
+/* ---------- Live Stream strip & player ---------- */
+const liveTicker = document.getElementById('ls_ticker');
+const liveOpenBtn = document.getElementById('ls_open');
+const livePlayer = document.getElementById('live_player');
+const liveUpdates = document.getElementById('live_updates');
+
+const DEMO_TITLES = [
+  'Crisis Desk: Stay clear of marked risk zone (red overlay).',
+  'Verified: Relief center open 09:00–18:00 today.',
+  'Traffic advisory: Route A closed for 2 hours.',
+  'Weather alert: Heavy rainfall expected in selected LGAs.'
+];
+let ti = 0;
+setInterval(()=>{
+  if(liveTicker){ ti = (ti+1)%DEMO_TITLES.length; liveTicker.textContent = DEMO_TITLES[ti]; }
+  if(liveUpdates){
+    const li = document.createElement('li');
+    li.textContent = `${new Date().toLocaleTimeString()} — ${DEMO_TITLES[ti]}`;
+    liveUpdates.prepend(li);
+    // cap to 30
+    while(liveUpdates.children.length>30) liveUpdates.removeChild(liveUpdates.lastChild);
+  }
+}, 6000);
+
+liveOpenBtn?.addEventListener('click', ()=>{
+  if(!livePlayer) return;
+  if(!livePlayer.dataset.mounted){
+    // You can replace with your own HLS/YouTube url
+    const iframe = document.createElement('iframe');
+    iframe.title = 'LINQMI Live';
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+    iframe.width = '100%'; iframe.height='100%';
+    iframe.style.border = '0'; iframe.style.borderRadius = '10px';
+    iframe.src = 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1&mute=1'; // demo stream
+    livePlayer.innerHTML = '';
+    livePlayer.appendChild(iframe);
+    livePlayer.dataset.mounted = '1';
+  }
+  openPanel('home');
+  livePlayer.scrollIntoView({behavior:'smooth', block:'center'});
+});
+
+/* ---------- Reports (Quick + Detailed) ---------- */
+const formReport = document.getElementById('form_report');
+const formReportPanel = document.getElementById('report_panel_form');
+
+function submitReport(raw){
+  const payload = {
+    type: raw.type,
+    urgency: raw.urgency,
+    desc: raw.desc || '',
+    anon: raw.anon || 'yes',
+    files: [],
+    ts: nowISO()
+  };
+  const list = read(KEYS.reports, []);
+  list.push(payload); write(KEYS.reports, list);
+  toast('Report submitted (demo)');
+  renderCounts(); renderReportsList(); renderAdmin();
+}
+
+formReport?.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  submitReport({
+    type: document.getElementById('report_type').value,
+    urgency: document.getElementById('report_urgency').value,
+    desc: document.getElementById('report_desc').value,
+    anon: document.getElementById('report_anon').value
+  });
+  document.getElementById('report_desc').value='';
+});
+
+formReportPanel?.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  submitReport({
+    type: document.getElementById('rp_type').value,
+    urgency: document.getElementById('rp_urgency').value,
+    desc: document.getElementById('rp_desc').value,
+    anon: document.getElementById('rp_anon').value
+  });
+  openPanel('home');
+});
+
+/* ---------- Reports list ---------- */
+function renderReportsList(){
+  const list = read(KEYS.reports, []);
+  const container = document.getElementById('reports_list');
+  if(!container) return;
+  if(!list.length){ container.innerHTML = '<div class="helper">No reports yet.</div>'; return; }
+  container.innerHTML = list.slice().reverse().map(r=>`
+    <div style="background:#fff;padding:10px;border-radius:8px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center">
+        <div><strong>${escapeHtml(r.type)}</strong> • <span class="helper">${escapeHtml(r.urgency)}</span></div>
+        <div class="helper">${new Date(r.ts).toLocaleString()}</div>
+      </div>
+      <div style="margin-top:6px">${escapeHtml(r.desc||'')}</div>
+    </div>
+  `).join('');
+}
+
+/* ---------- SOS & Geolocation ---------- */
+const mapStatus = document.getElementById('map_status');
+const btnGetLoc = document.getElementById('btn_getloc');
+const btnSendSos = document.getElementById('btn_send_sos');
+const sosSendBtn = document.getElementById('sos_send_btn');
+const sosGetLocBtn = document.getElementById('sos_getloc_btn');
+const sosListEl = document.getElementById('sos_list');
+
+btnGetLoc?.addEventListener('click', getLocationForMap);
+sosGetLocBtn?.addEventListener('click', getLocationForSosPanel);
+btnSendSos?.addEventListener('click', sendSOS);
+sosSendBtn?.addEventListener('click', sendSOS);
+
+function getLocation(cb){
+  if(!navigator.geolocation){ cb(null, 'Geolocation unsupported'); return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => cb(pos.coords, null),
+    err => cb(null, err.message),
+    {enableHighAccuracy:true, timeout:10000}
+  );
+}
+function getLocationForMap(){
+  getLocation((coords, err)=>{
+    if(err){ mapStatus.textContent = 'Location error: '+err; return; }
+    mapStatus.textContent = `Location: ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`;
+    try{
+      if(mainMap){
+        mainMap.setView([coords.latitude, coords.longitude], 13);
+        L.marker([coords.latitude, coords.longitude]).addTo(mainMap).bindPopup('You');
+      }
+    }catch{}
+  });
+}
+function getLocationForSosPanel(){
+  const status = document.getElementById('sos_status');
+  getLocation((coords, err)=>{
+    if(err){ status.textContent = 'Location error: '+err; return; }
+    status.textContent = `Location: ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`;
+  });
+}
+function sendSOS(){
+  getLocation((coords, err)=>{
+    const entry = {
+      lat: coords ? coords.latitude : null,
+      lng: coords ? coords.longitude : null,
+      note: coords ? 'SOS' : `SOS (no/failed geolocation): ${err||'unknown'}`,
+      ts: nowISO(),
+      _ack: false
+    };
+    const arr = read(KEYS.sos, []); arr.push(entry); write(KEYS.sos, arr);
+    toast('SOS recorded (demo). In production, notifies responders.');
+    refreshAllMaps(); renderSosList(); renderCounts(); renderAdmin();
+  });
+}
+function renderSosList(){
+  const arr = read(KEYS.sos, []);
+  const badge = document.getElementById('badge_sos');
+  const badge2 = document.getElementById('badge_sos_drawer');
+  if(badge) badge.textContent = arr.length || 0;
+  if(badge2) badge2.textContent = arr.length || 0;
+  if(!sosListEl) return;
+  if(!arr.length){ sosListEl.innerHTML = '<div class="helper">No SOS alerts yet.</div>'; return; }
+  sosListEl.innerHTML = arr.slice().reverse().map((s,idx,rev)=>{
+    const i = arr.length-1-idx;
+    return `
+      <div style="padding:10px;background:#fff;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div><strong>${escapeHtml(s.note||'SOS')}</strong> • <span class="helper">${s.lat!=null? (s.lat.toFixed(5)+', '+s.lng.toFixed(5)) : 'no coords'}</span></div>
+          <div class="helper">${new Date(s.ts).toLocaleString()}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn ghost" data-ack="${i}">Acknowledge</button>
+          <button class="btn" data-focus="${i}">Focus</button>
+        </div>
+      </div>`;
+  }).join('');
+  sosListEl.querySelectorAll('button').forEach(b=>{
+    if(b.dataset.ack) b.addEventListener('click', ()=> ackSOS(Number(b.dataset.ack)));
+    if(b.dataset.focus) b.addEventListener('click', ()=> focusSOS(Number(b.dataset.focus)));
+  });
+}
+function ackSOS(i){
+  const arr = read(KEYS.sos, []);
+  if(!arr[i]) return;
+  arr[i]._ack = true; write(KEYS.sos, arr);
+  renderSosList(); renderCounts();
+}
+function focusSOS(i){
+  const s = read(KEYS.sos, [])[i];
+  if(s && s.lat!=null && mainMap){
+    mainMap.setView([s.lat, s.lng], 13);
+    L.popup().setLatLng([s.lat, s.lng]).setContent('SOS: '+(s.note||'')).openOn(mainMap);
+  }else toast('No coordinates for this SOS');
+}
+
+/* ---------- Community Hub ---------- */
+document.getElementById('btn_create_group')?.addEventListener('click', ()=>{
+  const name = document.getElementById('group_name').value.trim();
+  if(!name) return alert('Enter group name');
+  const groups = read(KEYS.groups, []);
+  // enforce unique (case-insensitive)
+  if(groups.some(g => (g.name||'').toLowerCase() === name.toLowerCase())){
+    return alert('Group with this name already exists (official hub names are unique).');
+  }
+  groups.push({ name, created: nowISO() }); write(KEYS.groups, groups);
+  document.getElementById('group_name').value = '';
+  renderGroups(); renderCounts();
+});
+function renderGroups(){
+  const groups = read(KEYS.groups, []);
+  const el = document.getElementById('groups_list');
+  const badge = document.getElementById('badge_groups');
+  const badge2 = document.getElementById('badge_groups_drawer');
+  if(badge) badge.textContent = groups.length || 0;
+  if(badge2) badge2.textContent = groups.length || 0;
+  if(!el) return;
+  if(!groups.length){ el.innerHTML = '<div class="helper">No groups yet.</div>'; return; }
+  el.innerHTML = groups.slice().reverse().map(g=>`
+    <div style="padding:8px;border-radius:8px;background:#fff;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${escapeHtml(g.name)}</strong><div class="helper">${new Date(g.created).toLocaleString()}</div></div>
+      <div><button class="btn ghost" data-del="${escapeHtml(g.name)}">Remove</button></div>
+    </div>
+  `).join('');
+  el.querySelectorAll('button[data-del]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      if(!confirm('Remove this group?')) return;
+      const gs = read(KEYS.groups, []).filter(x=>x.name!==b.dataset.del);
+      write(KEYS.groups, gs); renderGroups(); renderCounts();
+    });
+  });
+}
+document.getElementById('chat_send')?.addEventListener('click', ()=>{
+  const box = document.getElementById('chat_input');
+  const msg = box.value.trim(); if(!msg) return;
+  const chat = read(KEYS.chat, []); chat.push({ msg, ts: nowISO() }); write(KEYS.chat, chat);
+  box.value = ''; renderChat();
+});
+function renderChat(){
+  const feed = read(KEYS.chat, []);
+  const el = document.getElementById('chat_feed');
+  if(!el) return;
+  if(!feed.length){ el.innerHTML = '<div class="helper">No messages yet.</div>'; return; }
+  el.innerHTML = feed.slice().reverse().map(m=>`
+    <div style="padding:8px;border-radius:8px;background:#fff;margin-bottom:8px">
+      <div class="helper">${new Date(m.ts).toLocaleString()}</div>
+      <div>${escapeHtml(m.msg)}</div>
+    </div>
+  `).join('');
+}
+document.getElementById('ann_broadcast')?.addEventListener('click', ()=>{
+  const input = document.getElementById('ann_text');
+  const text = input.value.trim(); if(!text) return alert('Write announcement');
+  const feed = read(KEYS.chat, []); feed.push({ msg: '[ANNOUNCEMENT] '+text, ts: nowISO() }); write(KEYS.chat, feed);
+  input.value=''; renderAnnouncements(); renderChat();
+});
+function renderAnnouncements(){
+  const feed = read(KEYS.chat, []);
+  const ann = feed.filter(m=>m.msg && m.msg.startsWith('[ANNOUNCEMENT]'));
+  const el = document.getElementById('ann_feed');
+  if(!el) return;
+  el.innerHTML = ann.length ? ann.slice().reverse().map(a=>`
+    <div style="padding:10px;border-radius:8px;background:#fff;margin-bottom:8px">
+      ${escapeHtml(a.msg)}<div class="helper">${new Date(a.ts).toLocaleString()}</div>
+    </div>
+  `).join('') : '<div class="helper">No announcements.</div>';
+}
+function renderNearbySupport(){
+  const el = document.getElementById('nearby_support');
+  if(!el) return;
+  const demo = [
+    '👤 Ada — Verified helper 0.7km away.',
+    '🏥 Clinic volunteer on standby.',
+    '🛡️ Community leader available for verification.',
+  ];
+  el.innerHTML = demo.map(x=>`<li>${escapeHtml(x)}</li>`).join('');
+}
+
+/* ---------- Device Tracking & Missing ---------- */
+document.getElementById('btn_register_device')?.addEventListener('click', ()=>{
+  const imei = document.getElementById('dev_imei').value.trim();
+  const sim = document.getElementById('dev_sim').value.trim();
+  const model = document.getElementById('dev_model').value.trim();
+  const devices = read(KEYS.devices, []); devices.push({ imei, sim, model, ts: nowISO(), ip:'(demo)' });
+  write(KEYS.devices, devices);
+  document.getElementById('dev_imei').value=''; document.getElementById('dev_sim').value=''; document.getElementById('dev_model').value='';
+  toast('Device registered (demo)'); renderCounts(); renderAdmin();
+});
+
+document.getElementById('btn_report_missing')?.addEventListener('click', ()=> openModal('modal_missing'));
+document.querySelectorAll('[data-close="modal_missing"]').forEach(b=> b.addEventListener('click', ()=> closeModal('modal_missing')));
+document.getElementById('save_missing_btn')?.addEventListener('click', ()=>{
+  const cat = document.getElementById('miss_category').value;
+  const id = document.getElementById('miss_identifier').value.trim();
+  const last = document.getElementById('miss_last').value.trim();
+  const details = document.getElementById('miss_details').value.trim();
+  if(!id) return alert('Enter identifier');
+  const arr = read(KEYS.missing, []); arr.push({ cat, id, last, details, ts: nowISO() }); write(KEYS.missing, arr);
+  closeModal('modal_missing'); renderRecoveryLog(); renderCounts(); renderAdmin();
+});
+function renderRecoveryLog(){
+  const list = read(KEYS.missing, []);
+  const el = document.getElementById('recovery_log');
+  if(!el) return;
+  if(!list.length){ el.innerHTML = '<div class="helper">No missing cases logged.</div>'; return; }
+  el.innerHTML = list.slice().reverse().map(m=>`
+    <div style="padding:10px;background:#fff;border-radius:8px;margin-bottom:8px">
+      <div><strong>${escapeHtml(m.cat)}</strong> • ${escapeHtml(m.id)}</div>
+      <div class="helper">${new Date(m.ts).toLocaleString()}</div>
+      <div>${escapeHtml(m.details||'')}</div>
+    </div>
+  `).join('');
+}
+
+/* ---------- Mentorship / Counselling Form ---------- */
+const mentorshipForm = document.getElementById('mentorship_form');
+mentorshipForm?.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const mode = document.getElementById('ms_identity_mode').value;
+  const fullname = document.getElementById('ms_fullname').value.trim();
+  const email = document.getElementById('ms_email').value.trim();
+  const phone = document.getElementById('ms_phone').value.trim();
+  const reason = document.getElementById('ms_reason').value.trim();
+  const category = document.getElementById('ms_category').value;
+  const urgency = document.getElementById('ms_urgency').value;
+  const prefMode = document.getElementById('ms_mode').value;
+  const lang = document.getElementById('ms_lang').value;
+  const date = document.getElementById('ms_date').value;
+  const time = document.getElementById('ms_time').value;
+  const tz = document.getElementById('ms_timezone').value;
+  const genderPref = document.getElementById('ms_gender_pref').value;
+  const more = document.getElementById('ms_more').value.trim();
+  const consentShare = document.getElementById('ms_consent_share').checked;
+  const consentDisc = document.getElementById('ms_consent_disclaimer').checked;
+
+  // Basic validation
+  if(mode==='verified'){
+    if(!fullname) return alert('Full Name is required for verified requests.');
+    if(!email && !phone) return alert('Provide at least one contact (email or phone).');
+  }
+  if(!reason) return alert('Please provide a short reason for the request.');
+  if(!consentShare || !consentDisc) return alert('Please accept the consent checkboxes.');
+
+  const requests = read(KEYS.mentorship, []);
+  requests.push({
+    identityMode: mode,
+    personal: { fullname, email, phone },
+    request: { reason, category, urgency, prefMode, lang, date, time, tz, genderPref, more },
+    ts: nowISO(),
+    status: 'new'
+  });
+  write(KEYS.mentorship, requests);
+  mentorshipForm.reset();
+  document.getElementById('ms_timezone').value = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Auto-detected';
+  toast('Mentorship/Counselling request submitted (demo).');
+});
+
+/* Auto-detect timezone on load */
+(function setAutoTZ(){
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Auto';
+  const tzEl = document.getElementById('ms_timezone');
+  if(tzEl) tzEl.value = tz;
+})();
+
+/* ---------- Profile & Privacy ---------- */
+document.getElementById('pf_export_csv')?.addEventListener('click', ()=>{
+  // Export reports + SOS as CSV
+  const reports = read(KEYS.reports, []);
+  const sos = read(KEYS.sos, []);
+  const rows = [['Type','Urgency','Description','Anon','Timestamp']].concat(
+    reports.map(r=>[r.type,r.urgency,(r.desc||'').replace(/\n/g,' '),r.anon,r.ts])
+  ).concat([[] ,['SOS','Lat','Lng','Note','Timestamp']]).concat(
+    sos.map(s=>['SOS', s.lat??'', s.lng??'', (s.note||'').replace(/\n/g,' '), s.ts])
+  );
+  const csv = rows.map(r=>r.map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = 'linqmi_export_'+Date.now()+'.csv'; a.click(); a.remove();
+});
+document.getElementById('pf_export_pdf')?.addEventListener('click', ()=>{
+  // Simple printable view (user can save as PDF)
+  const w = window.open('', '_blank');
+  const reports = read(KEYS.reports, []);
+  w.document.write('<h2>LINQMI — My Report History</h2>');
+  w.document.write('<ul>');
+  reports.forEach(r=> w.document.write(`<li><strong>${escapeHtml(r.type)}</strong> — ${escapeHtml(r.urgency)} — ${escapeHtml(r.desc||'')} — ${new Date(r.ts).toLocaleString()}</li>`));
+  w.document.write('</ul><small>Generated: '+new Date().toLocaleString()+'</small>');
+  w.document.close();
+  w.focus();
+});
+document.getElementById('pf_export_charts')?.addEventListener('click', ()=>{
+  alert('Charts export (demo): integrate your chart library here.');
+});
+
+/* Privacy & Consent panel */
+document.getElementById('pc_view_data')?.addEventListener('click', ()=>{
+  const all = {};
+  Object.values(KEYS).forEach(k=> all[k] = read(k, null));
+  alert('Stored data (demo):\n\n'+JSON.stringify(all, null, 2));
+});
+document.getElementById('pc_delete_data')?.addEventListener('click', ()=>{
+  if(!confirm('Request deletion of all stored data? (demo clears local data)')) return;
+  Object.values(KEYS).forEach(k => LSK.removeItem(k));
+  ensureKeys?.(); // recreate empty keys
+  renderCounts(); renderReportsList(); renderAdmin(); renderSosList();
+  alert('Data deletion request processed (demo: local data cleared).');
+});
+document.getElementById('pc_save')?.addEventListener('click', ()=>{
+  toast('Consent preferences saved (demo).');
+});
+document.getElementById('pc_reset')?.addEventListener('click', ()=>{
+  document.getElementById('pc_location').value='Allowed';
+  document.getElementById('pc_device').value='Allowed';
+  document.getElementById('pc_media').value='Allowed';
+});
+
+/* ---------- Help & Onboarding / Accessibility ---------- */
+document.getElementById('ob_start')?.addEventListener('click', ()=>{
+  alert('Guided walkthrough (demo):\n1) Profile\n2) SOS\n3) Community\n4) Reports');
+});
+document.getElementById('help_contact')?.addEventListener('click', ()=>{
+  alert('Contact support (demo): support@soclinq.example');
+});
+document.getElementById('help_issue')?.addEventListener('click', ()=>{
+  alert('Issue reporter (demo): opens feedback form.');
+});
+
+const ROOT = document.documentElement;
+let baseFont = 16;
+document.getElementById('acc_high_contrast')?.addEventListener('click', ()=> document.body.classList.toggle('hc-on'));
+document.getElementById('acc_text_up')?.addEventListener('click', ()=>{
+  baseFont = Math.min(22, baseFont+1);
+  ROOT.style.fontSize = baseFont+'px';
+});
+document.getElementById('acc_text_down')?.addEventListener('click', ()=>{
+  baseFont = Math.max(14, baseFont-1);
+  ROOT.style.fontSize = baseFont+'px';
+});
+document.getElementById('acc_screen_reader')?.addEventListener('click', ()=>{
+  const on = document.body.getAttribute('data-sr')==='on';
+  document.body.setAttribute('data-sr', on ? 'off' : 'on');
+  toast('Screen reader hints '+(on?'disabled':'enabled')+' (demo)');
+});
+
+/* ---------- Export / Import (global) ---------- */
+function exportAll(){
+  const exportObj = {
+    reports: read(KEYS.reports, []),
+    sos: read(KEYS.sos, []),
+    devices: read(KEYS.devices, []),
+    groups: read(KEYS.groups, []),
+    chat: read(KEYS.chat, []),
+    users: read(KEYS.users, []),
+    missing: read(KEYS.missing, []),
+    mentorship: read(KEYS.mentorship, []),
+    profile: read(KEYS.profile, {}),
+    geoSubs: read(KEYS.geoSubs, {regions:[],zone:'all'})
+  };
+  const blob = new Blob([JSON.stringify(exportObj,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = 'linqmi_export_'+Date.now()+'.json'; a.click(); a.remove();
+}
+document.getElementById('btn_export_drawer')?.addEventListener('click', ()=>{ exportAll(); closeDrawer(); });
+document.getElementById('btn_export_drawer_m')?.addEventListener('click', ()=>{ exportAll(); closeDrawer(); });
+
+['btn_import_drawer','btn_import_drawer_m'].forEach(id=>{
+  const btn = document.getElementById(id);
+  btn?.addEventListener('click', ()=>{
+    const fi = document.getElementById('file_input');
+    fi.value = ''; fi.click(); closeDrawer();
+  });
+});
+document.getElementById('file_input')?.addEventListener('change', (ev)=>{
+  const f = ev.target.files?.[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(data.reports) write(KEYS.reports, data.reports);
+      if(data.sos) write(KEYS.sos, data.sos);
+      if(data.devices) write(KEYS.devices, data.devices);
+      if(data.groups) write(KEYS.groups, data.groups);
+      if(data.chat) write(KEYS.chat, data.chat);
+      if(data.users) write(KEYS.users, data.users);
+      if(data.missing) write(KEYS.missing, data.missing);
+      if(data.mentorship) write(KEYS.mentorship, data.mentorship);
+      if(data.profile) write(KEYS.profile, data.profile);
+      if(data.geoSubs) write(KEYS.geoSubs, data.geoSubs);
+      toast('Imported JSON into local storage (demo).');
+      renderEverything();
+    }catch(err){
+      alert('Invalid JSON: '+err.message);
+    }
+  };
+  r.readAsText(f);
+});
+
+/* ---------- Admin ---------- */
+function renderAdmin(){
+  const reports = read(KEYS.reports, []);
+  const tbody = document.querySelector('#admin_reports_table tbody');
+  if(tbody){
+    tbody.innerHTML = '';
+    reports.slice().reverse().forEach((r, idx)=>{
+      const realIdx = reports.length-1-idx;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(r.ts).toLocaleString()}</td>
+        <td>${escapeHtml(r.type)}</td>
+        <td>${escapeHtml(r.urgency)}</td>
+        <td style="max-width:400px">${escapeHtml(r.desc||'')}</td>
+        <td>${escapeHtml(r.anon)}</td>
+        <td>
+          <button class="btn ghost" data-act="view" data-idx="${realIdx}">View</button>
+          <button class="btn" data-act="del" data-idx="${realIdx}">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const act = b.dataset.act; const idx = Number(b.dataset.idx);
+        if(act==='view') alert(JSON.stringify(read(KEYS.reports, [])[idx], null, 2));
+        if(act==='del'){
+          if(confirm('Delete report?')){
+            const arr = read(KEYS.reports, []); arr.splice(idx,1); write(KEYS.reports, arr);
+            renderAdmin(); renderCounts();
+          }
+        }
+      });
+    });
+  }
+
+  // SOS table
+  const sos = read(KEYS.sos, []);
+  const stbody = document.querySelector('#admin_sos_table tbody');
+  if(stbody){
+    stbody.innerHTML = '';
+    sos.slice().reverse().forEach((s, idx)=>{
+      const ri = sos.length-1-idx;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(s.ts).toLocaleString()}</td>
+        <td>${s.lat!=null? s.lat.toFixed(5) : ''}</td>
+        <td>${s.lng!=null? s.lng.toFixed(5) : ''}</td>
+        <td>${escapeHtml(s.note||'')}</td>
+        <td>
+          <button class="btn" data-act="focus" data-idx="${ri}">Focus</button>
+          <button class="btn ghost" data-act="del" data-idx="${ri}">Delete</button>
+        </td>`;
+      stbody.appendChild(tr);
+    });
+    stbody.querySelectorAll('button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const act = b.dataset.act; const idx = Number(b.dataset.idx);
+        if(act==='focus'){
+          const s = read(KEYS.sos, [])[idx];
+          if(s && s.lat!=null) { panelMap?.setView([s.lat,s.lng],13); } else toast('No coords');
+        }
+        if(act==='del'){
+          if(confirm('Delete SOS?')){
+            const arr = read(KEYS.sos, []); arr.splice(idx,1); write(KEYS.sos, arr);
+            renderAdmin(); renderCounts(); refreshAllMaps();
+          }
+        }
+      });
+    });
+  }
+
+  // Devices
+  const devices = read(KEYS.devices, []);
+  const devicesEl = document.getElementById('admin_devices_list');
+  if(devicesEl){
+    devicesEl.innerHTML = devices.length ?
+      devices.slice().reverse().map(d=>`
+        <div style="padding:8px;border-radius:8px;background:#fff;margin-bottom:8px">
+          ${escapeHtml(d.model||'')} • ${escapeHtml(d.imei||'')} • ${new Date(d.ts).toLocaleString()}
+        </div>`).join('') : '<div class="helper">No devices</div>';
+  }
+
+  // Users (demo)
+  const users = read(KEYS.users, []);
+  const usersEl = document.getElementById('admin_users_list');
+  if(usersEl){
+    usersEl.innerHTML = users.length ?
+      users.slice().reverse().map(u=>`
+        <div style="padding:8px;border-radius:8px;background:#fff;margin-bottom:8px">
+          ${escapeHtml(u.id||'user')} • ${escapeHtml(u.lang||'')}
+        </div>`).join('') : '<div class="helper">No users</div>';
+  }
+
+  // Counts
+  const c = (k)=> read(k, []).length || 0;
+  const set = (id, val)=>{ const el = document.getElementById(id); if(el) el.textContent = val; };
+  set('admin_reports', c(KEYS.reports));
+  set('admin_sos', c(KEYS.sos));
+  set('admin_devices', c(KEYS.devices));
+
+  // Admin bulk buttons
+  document.getElementById('admin_refresh')?.addEventListener('click', renderAdmin);
+  document.getElementById('admin_ack_all')?.addEventListener('click', ()=>{
+    const sos = read(KEYS.sos, []); sos.forEach(s=> s._ack = true); write(KEYS.sos, sos);
+    toast('All SOS acknowledged (demo)'); renderAdmin();
+  });
+  document.getElementById('admin_clear_devices')?.addEventListener('click', ()=>{
+    if(confirm('Clear devices?')){ write(KEYS.devices, []); renderAdmin(); renderCounts(); }
+  });
+  document.getElementById('admin_clear_users')?.addEventListener('click', ()=>{
+    if(confirm('Clear users?')){ write(KEYS.users, []); renderAdmin(); renderCounts(); }
+  });
+}
+
+/* ---------- Counts & Global Render ---------- */
+function renderCounts(){
+  const set = (id, val)=>{ const el = document.getElementById(id); if(el) el.textContent = val; };
+  const c = (k)=> read(k, []).length || 0;
+  set('stat_reports', c(KEYS.reports));
+  set('stat_sos', c(KEYS.sos));
+  set('stat_devices', c(KEYS.devices));
+  set('badge_sos', c(KEYS.sos));
+  set('badge_sos_drawer', c(KEYS.sos));
+  set('badge_groups', c(KEYS.groups));
+  set('badge_groups_drawer', c(KEYS.groups));
+}
+function renderEverything(){
+  renderCounts();
+  renderReportsList();
+  renderSosList();
+  renderGroups();
+  renderChat();
+  renderAnnouncements();
+  renderRecoveryLog();
+  renderAdmin();
+  refreshAllMaps();
+}
+
+/* ---------- Modals (Auth + Missing) ---------- */
+function openModal(id){ document.getElementById(id)?.classList.add('show'); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('show'); }
+document.querySelectorAll('[data-close="modal_auth"]').forEach(b=> b.addEventListener('click', ()=> closeModal('modal_auth')));
+document.getElementById('btn_logout')?.addEventListener('click', ()=> openModal('modal_auth'));
+
+/* Demo OTP flow */
+let demoOtp = '';
+document.getElementById('send_otp_btn')?.addEventListener('click', ()=>{
+  demoOtp = String(Math.floor(100000 + Math.random()*900000));
+  document.getElementById('auth_msg').textContent = 'Demo OTP: '+demoOtp;
+  // Populate device info
+  const info = `UA: ${navigator.userAgent}\nPlatform: ${navigator.platform}\nIMEI: (native only)\n`;
+  document.getElementById('auth_device_info').value = info;
+});
+document.getElementById('verify_otp_btn')?.addEventListener('click', ()=>{
+  const otpVal = document.getElementById('auth_otp').value.trim();
+  const id = document.getElementById('auth_identifier').value.trim();
+  const lang = document.getElementById('auth_lang').value;
+  const anon = document.getElementById('auth_anon').value;
+  if(!id) return alert('Enter phone or email');
+  if(otpVal !== demoOtp) return alert('Invalid OTP (demo)');
+  const users = read(KEYS.users, []); users.push({ id, lang, anon, ts: nowISO() }); write(KEYS.users, users);
+  toast('Account created & signed in (demo)');
+  document.getElementById('avatar').textContent = (id[0]||'U').toUpperCase();
+  closeModal('modal_auth');
+});
+
+/* ---------- Leaflet Maps (Main, Panel, Geo) ---------- */
+let mainMap, panelMap, geoMap, mainMarkers=[], panelMarkers=[], geoLayers={safe:null,risk:null};
+
+function loadLeafletJS(cb){
+  if(window.L && typeof L.map==='function'){ cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  s.onload = cb;
+  document.body.appendChild(s);
+}
+function initMaps(){
+  try{
+    if(!mainMap){
+      mainMap = L.map('map', { attributionControl:false }).setView([9.0820,8.6753], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap);
+    }
+    if(!panelMap){
+      panelMap = L.map('map_panel', { attributionControl:false }).setView([9.0820,8.6753], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(panelMap);
+    }
+    if(!geoMap){
+      geoMap = L.map('map_geo', { attributionControl:false }).setView([9.0820,8.6753], 5);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(geoMap);
+      // Demo safe/risk overlays
+      geoLayers.safe = L.circle([6.465422, 3.406448], {radius: 15000, color:'#16a34a', fillColor:'#16a34a', fillOpacity:0.12});
+      geoLayers.risk = L.circle([7.3775, 3.9470], {radius: 20000, color:'#dc2626', fillColor:'#dc2626', fillOpacity:0.12});
+      geoLayers.safe.addTo(geoMap); geoLayers.risk.addTo(geoMap);
+    }
+  }catch(e){ console.warn('Map init failed', e); }
+  refreshAllMaps();
+}
+function addMarker(mapRef, lat, lng, text){
+  if(!mapRef) return null;
+  try{ return L.marker([lat,lng]).addTo(mapRef).bindPopup(text||''); }catch{return null;}
+}
+function refreshMainMarkers(){
+  if(!mainMap) return;
+  mainMarkers.forEach(m=>mainMap.removeLayer(m)); mainMarkers=[];
+  const sos = read(KEYS.sos, []);
+  sos.forEach(s=>{
+    if(s.lat!=null && s.lng!=null){
+      const m = addMarker(mainMap, s.lat, s.lng, `SOS • ${new Date(s.ts).toLocaleString()}<br>${escapeHtml(s.note||'')}`);
+      if(m) mainMarkers.push(m);
+    }
+  });
+}
+function refreshPanelMarkers(){
+  if(!panelMap) return;
+  panelMarkers.forEach(m=>panelMap.removeLayer(m)); panelMarkers=[];
+  const sos = read(KEYS.sos, []);
+  sos.forEach(s=>{
+    if(s.lat!=null && s.lng!=null){
+      const m = addMarker(panelMap, s.lat, s.lng, `SOS • ${new Date(s.ts).toLocaleString()}<br>${escapeHtml(s.note||'')}`);
+      if(m) panelMarkers.push(m);
+    }
+  });
+}
+function refreshAllMaps(){ refreshMainMarkers(); refreshPanelMarkers(); }
+
+loadLeafletJS(()=>{ setTimeout(initMaps, 50); });
+
+/* ---------- Geospatial Subscriptions & Filters ---------- */
+const geoZoneSel = document.getElementById('geo_zone');
+const geoRegionSel = document.getElementById('geo_region');
+document.getElementById('btn_subscribe_zone')?.addEventListener('click', ()=>{
+  const subs = read(KEYS.geoSubs, {regions:[],zone:'all'});
+  const reg = geoRegionSel.value;
+  if(!subs.regions.includes(reg)) subs.regions.push(reg);
+  subs.zone = geoZoneSel.value;
+  write(KEYS.geoSubs, subs);
+  toast(`Subscribed to ${reg} (${subs.zone} zones)`);
+  renderGeoAlerts();
+});
+document.getElementById('btn_unsubscribe_zone')?.addEventListener('click', ()=>{
+  const subs = read(KEYS.geoSubs, {regions:[],zone:'all'});
+  const reg = geoRegionSel.value;
+  subs.regions = subs.regions.filter(r=>r!==reg);
+  write(KEYS.geoSubs, subs);
+  toast(`Unsubscribed from ${reg}`);
+  renderGeoAlerts();
+});
+geoZoneSel?.addEventListener('change', ()=>{
+  const subs = read(KEYS.geoSubs, {regions:[],zone:'all'});
+  subs.zone = geoZoneSel.value; write(KEYS.geoSubs, subs);
+  // Toggle overlays
+  if(geoLayers.safe && geoLayers.risk){
+    if(subs.zone==='safe'){ geoMap.addLayer(geoLayers.safe); geoMap.removeLayer(geoLayers.risk); }
+    else if(subs.zone==='risk'){ geoMap.addLayer(geoLayers.risk); geoMap.removeLayer(geoLayers.safe); }
+    else { geoMap.addLayer(geoLayers.safe); geoMap.addLayer(geoLayers.risk); }
+  }
+  renderGeoAlerts();
+});
+function renderGeoAlerts(){
+  const subs = read(KEYS.geoSubs, {regions:[],zone:'all'});
+  const list = document.getElementById('geo_alerts');
+  if(!list) return;
+  if(!subs.regions.length){ list.innerHTML = '<li class="helper">No region subscriptions yet.</li>'; return; }
+  const sample = [
+    `Subscribed: ${subs.regions.join(', ')} • Zone filter: ${subs.zone}`,
+    subs.zone!=='risk' ? 'SAFE: Community park patrol running.' : null,
+    subs.zone!=='safe' ? 'RISK: Incident cluster detected in nearby LGA.' : null
+  ].filter(Boolean);
+  list.innerHTML = sample.map(m=>`<li>${escapeHtml(m)}</li>`).join('');
+}
+
+/* ---------- Home stats actions ---------- */
+document.getElementById('btn_sos')?.addEventListener('click', ()=> openPanel('sos_panel'));
+
+/* ---------- Initial render ---------- */
+renderEverything();
+
+/* Invalidate Leaflet map sizes when panels swap visibility */
+const mainEl = document.getElementById('main');
+const mo = new MutationObserver(()=>{ setTimeout(()=>{ try{ mainMap?.invalidateSize(); panelMap?.invalidateSize(); geoMap?.invalidateSize(); }catch{} }, 200); });
+mo.observe(mainEl, { childList:true, subtree:true });
+</script>
+</body>
+</html>

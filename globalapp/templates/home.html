@@ -258,44 +258,64 @@
           <button class="am-tab" data-tab="forgot" role="tab" aria-selected="false">Forgot Password</button>
         </div>
 
-        <!-- Login -->
-        <div class="am-panel active" id="am-login" role="tabpanel">
+        <!-- LOGIN FORM -->
+      <div class="am-panel active" id="am-login" role="tabpanel">
+        <form method="POST" action="{% url 'login' %}">
+          {% csrf_token %}
           <div class="am-field">
             <label for="login-email">Email</label>
-            <input id="login-email" type="email" placeholder="you@example.com" autocomplete="email">
+            <input id="login-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email">
           </div>
           <div class="am-field">
             <label for="login-pass">Password</label>
-            <input id="login-pass" type="password" placeholder="Enter password" autocomplete="current-password">
+            <input id="login-pass" name="password" type="password" placeholder="Enter password" required autocomplete="current-password">
           </div>
-            <div class="am-meta"><input id="keep-signed" type="checkbox" style="margin-right:6px;vertical-align:middle;">Keep me signed in on this device</div>
+          <div class="am-meta">
+            <input id="keep-signed" type="checkbox" name="remember" style="margin-right:6px;vertical-align:middle;">Keep me signed in on this device
+          </div>
           <div class="am-actions">
-            <button class="am-btn secondary" data-close-auth>Cancel</button>
-            <button class="am-btn primary" id="do-login">Login</button>
+            <button type="button" class="am-btn secondary" data-close-auth>Cancel</button>
+            <button type="submit" class="am-btn primary">Login</button>
           </div>
           <div class="am-meta">Forgot your password? <span class="am-link" data-goto="forgot">Reset here</span>.</div>
-        </div>
+        </form>
+      </div>
 
-        <!-- Sign Up -->
-        <div class="am-panel" id="am-signup" role="tabpanel" aria-hidden="true">
+      <!-- SIGNUP (REGISTER) FORM -->
+      <div class="am-panel" id="am-signup" role="tabpanel" aria-hidden="true">
+        <form method="POST" action="{% url 'register' %}">
+          {% csrf_token %}
           <div class="am-field">
-            <label for="su-name">Full Name</label>
-            <input id="su-name" type="text" placeholder="Your full name" autocomplete="name">
+            <label for="su-first">First Name</label>
+            <input id="su-first" name="first_name" type="text" placeholder="Your first name" required>
+          </div>
+          <div class="am-field">
+            <label for="su-last">Last Name</label>
+            <input id="su-last" name="last_name" type="text" placeholder="Your last name" required>
           </div>
           <div class="am-field">
             <label for="su-email">Email</label>
-            <input id="su-email" type="email" placeholder="you@example.com" autocomplete="email">
+            <input id="su-email" name="email" type="email" placeholder="you@example.com" required autocomplete="email">
           </div>
           <div class="am-field">
-            <label for="su-pass">Password</label>
-            <input id="su-pass" type="password" placeholder="Create a strong password" autocomplete="new-password">
+            <label for="su-phone">Phone Number</label>
+            <input id="su-phone" name="phone_number" type="tel" placeholder="e.g. +2348012345678">
+          </div>
+          <div class="am-field">
+            <label for="su-pass1">Password</label>
+            <input id="su-pass1" name="password1" type="password" placeholder="Create a strong password" required autocomplete="new-password">
+          </div>
+          <div class="am-field">
+            <label for="su-pass2">Confirm Password</label>
+            <input id="su-pass2" name="password2" type="password" placeholder="Confirm your password" required autocomplete="new-password">
           </div>
           <div class="am-actions">
-            <button class="am-btn secondary" data-close-auth>Cancel</button>
-            <button class="am-btn primary" id="do-signup">Create Account</button>
+            <button type="button" class="am-btn secondary" data-close-auth>Cancel</button>
+            <button type="submit" class="am-btn primary">Create Account</button>
           </div>
           <div class="am-meta">Already have an account? <span class="am-link" data-goto="login">Login</span>.</div>
-        </div>
+        </form>
+      </div>
 
         <!-- Forgot Password -->
         <div class="am-panel" id="am-forgot" role="tabpanel" aria-hidden="true">

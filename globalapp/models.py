@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser, UserManager, PermissionsMixin
 import uuid
-
+from django.utils import timezone
 
 # Create your models here.
 
